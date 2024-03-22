@@ -1,11 +1,13 @@
 import requests
 from app import tfdataservice
 
-class touchfish:
+class tfoperator:
 
-    url_prefix = 'http://127.0.0.1:5000'
+    def __init__(self, host='127.0.0.1', port=5000) -> None:
+        self.url_prefix = f'http://{host}:{port}'
 
-    def search_fish(
+    def search_fish (
+        self,
         fuzzys: str = None, 
         value: str = None, 
         description: str = None, 
@@ -16,7 +18,7 @@ class touchfish:
         is_locked: str = None,
         page: str = None,
     ):
-        url = touchfish.url_prefix + '/fish/search'
+        url = self.url_prefix + '/fish/search'
         return requests.get(url=url, params={
             'fuzzys': fuzzys,
             'value': value,
@@ -30,13 +32,14 @@ class touchfish:
         })
     
     def add_fish (
+        self,
         value: bytes,
         type: str,
         description: str = None,
         tags: str = None,
         extra_info: str = None,
     ):
-        url = touchfish.url_prefix + '/fish/add'
+        url = self.url_prefix + '/fish/add'
         return requests.post(url=url, data={
             'type': type,
             'description': description,

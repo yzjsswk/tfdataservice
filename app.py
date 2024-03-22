@@ -9,6 +9,6 @@ class tfdataservice:
         logger.add(lambda message: print(message))
         logger.add(Config.path__log + "/{time:YYYY-MM-DD}.log", rotation="00:00")
     
-    def start():
+    def start(port=5000):
         tfdataservice.__init_logger__()
-        tfwebserver.run()
+        tfwebserver.run(port=port)
