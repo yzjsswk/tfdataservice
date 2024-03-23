@@ -150,3 +150,9 @@ class DB:
     def fish__delete(id: int) -> None:
         DB.fp.db().table('fish').where(f'id={id}').delete(print_sql=True)
 
+    @staticmethod
+    def fish__select_bytes(identity: str) -> bytes:
+        res = DB.fp.db().table('fish').cols('value').where(f"identity='{identity}'").select(print_sql=True)
+        if len(res) > 0:
+            return res[0][0]
+        return None

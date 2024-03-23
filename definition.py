@@ -22,7 +22,7 @@ class Fish:
     def __init__(self, row: tuple) -> None:  
         self.id = row[0]  
         self.identity = row[1] 
-        self.type = row[2] 
+        self.type = row[2]
         if self.type == 'text':
             if isinstance(row[3], str):
                 self.value = row[3]
@@ -40,7 +40,7 @@ class Fish:
         self.extra_info = row[8] 
         self.create_time = row[9] 
         self.update_time = row[10]
-    
+        
     @staticmethod
     def from_rows(rows: list[tuple]) -> list['Fish']:
         res = []

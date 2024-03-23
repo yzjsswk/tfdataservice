@@ -30,7 +30,7 @@ def control(func):
                 lack_para.append(func_para)
         return input, lack_para, dup_para
     def handle_output(data, time_cost, status=200) -> Response:
-        if type(data) == dict:
+        if isinstance(data, dict):
             res = {}
             res['time_cost'] = time_cost
             res['code'] = data.get('code', 'SSCTWF')
@@ -46,6 +46,15 @@ def control(func):
                 res['data'] = data
             res = ystr().json().from_object(res)
             return Response(res, status=status, content_type='application/json')
+        if  isinstance(data, bytes):
+            res = make_response(data)
+            # todo: file name
+            res.headers['Content-Disposition'] = f'attachment; filename=fishdata'
+            res.headers['Content-Type'] = 'application/octet-stream'
+            return res
+        if isinstance(data, str):
+            return make_response(data)    
+        logger.warning(f'unhandled response type: {type(data)}')
         return make_response(data)
     def wrap_func(*args, **kwargs):
         if len(args) > 0 or len(kwargs) > 0:
@@ -234,3 +243,8 @@ def mark_fish(identity: str) -> dict:
 @control
 def unmark_fish(identity: str) -> dict:
     return Service.unmark_fish(identity)
+
+@tfwebserver.route('/resource/fetch', methods=['GET'])
+@control
+def fetch_resource(identity: str) -> bytes:
+    return Service.fetch_resource(identity)

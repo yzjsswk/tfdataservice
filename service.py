@@ -1,7 +1,7 @@
 from yfunc import *
 from db import DB
 from definition import *
-
+from config import Config
 
 class Service():
 
@@ -205,4 +205,12 @@ class Service():
         DB.fish__update(id=res[0].id, description=description, tags=tags, extra_info=extra_info)
         return get_dict_resp(RespStatus.success, 'success', 'SVMDF')    
     
-    
+    @staticmethod
+    def fetch_resource(identity: str) -> bytes:
+        if identity == None:
+            return None
+        # todo: resource index by task
+        for f in ystr(Config.path__resource).filepath().search():
+            if identity == f.filepath().suffix(keep_ext=False):
+                return ybytes.from_file(f)
+        return DB.fish__select_bytes(identity=identity)
