@@ -48,5 +48,14 @@ class tfoperator:
         }, files={
             'value': value,
         })
+    
+    def fetch_resource (
+        self,
+        identity: str
+    ):
+        url = self.url_prefix + '/resource/fetch'
+        return requests.get(url=url, params={
+            'identity': identity,
+        })
 
         
