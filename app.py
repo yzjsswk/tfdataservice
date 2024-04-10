@@ -11,4 +11,4 @@ class tfdataservice:
     
     def start(port=5000):
         tfdataservice.__init_logger__()
-        tfwebserver.run(port=port)
+        tfwebserver.run(host='0.0.0.0', port=port)
