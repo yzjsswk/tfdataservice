@@ -1,5 +1,6 @@
 import requests
 from app import tfdataservice
+from yfunc import *
 
 class tfoperator:
 
@@ -17,9 +18,9 @@ class tfoperator:
         is_marked: str = None,
         is_locked: str = None,
         page: str = None,
-    ):
+    ) -> str:
         url = self.url_prefix + '/fish/search'
-        return requests.get(url=url, params={
+        res = requests.get(url=url, params={
             'fuzzys': fuzzys,
             'value': value,
             'description': description, 
@@ -30,6 +31,7 @@ class tfoperator:
             'is_locked': is_locked,
             'page': page,
         })
+        return res.text
     
     def add_fish (
         self,
@@ -38,9 +40,9 @@ class tfoperator:
         description: str = None,
         tags: str = None,
         extra_info: str = None,
-    ):
+    ) -> str:
         url = self.url_prefix + '/fish/add'
-        return requests.post(url=url, data={
+        res = requests.post(url=url, data={
             'type': type,
             'description': description,
             'tags': tags,
@@ -48,14 +50,16 @@ class tfoperator:
         }, files={
             'value': value,
         })
+        return res.text
     
     def fetch_resource (
         self,
         identity: str
-    ):
+    ) -> bytes:
         url = self.url_prefix + '/resource/fetch'
-        return requests.get(url=url, params={
+        res = requests.get(url=url, params={
             'identity': identity,
         })
+        return res.content
 
         
