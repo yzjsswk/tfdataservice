@@ -31,7 +31,7 @@ class Service():
         
     @staticmethod
     def statistic() -> dict:
-        res = DB.fish__search()
+        _, res = DB.fish__search()
         type_stats = {}
         tag_stats = {}
         mark_stats = {'marked':0, 'unmarked':0}
