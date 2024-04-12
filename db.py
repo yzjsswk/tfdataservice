@@ -1,6 +1,6 @@
 from yfunc import *
 from config import Config
-from definition import Fish
+from definition import FishIndex
 
 
 class DB:
@@ -50,7 +50,7 @@ class DB:
             is_locked: int = None,
             page_num: int = None,
             page_size: int = None,
-        ) -> tuple[int, list[Fish]]:
+        ) -> tuple[int, list[FishIndex]]:
         condition = '1=1'
         if fuzzys != None:
             condition += f" and (value like '%{fuzzys}%' or description like '%{fuzzys}%')"
@@ -85,15 +85,15 @@ class DB:
             .where(condition) \
             .extra(extra) \
             .select(print_sql=True)
-        return cnt, Fish.from_rows(fish)
+        return cnt, FishIndex.from_rows(fish)
 
     @staticmethod
-    def fish__pick(id: int) -> list[Fish]:
+    def fish__pick(id: int) -> list[FishIndex]:
         res = DB.fp.db() \
             .table('fish') \
             .where(f"id={id}") \
             .select(print_sql=True)
-        return Fish.from_rows(res)
+        return FishIndex.from_rows(res)
     
     @staticmethod
     def fish__exist(identity: str) -> bool:

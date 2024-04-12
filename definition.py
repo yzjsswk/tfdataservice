@@ -4,6 +4,10 @@ from enum import Enum
 class FishType(Enum):
     text = 1
     image = 2
+    pdf = 3
+    music = 4
+    video = 5
+    other = 99
 
     @staticmethod
     def from_name(name: str) -> 'FishType':
@@ -17,7 +21,7 @@ class RespStatus(Enum):
     skip = 'P'
     fail = 'F'
 
-class Fish:
+class FishIndex:
 
     def __init__(self, row: tuple) -> None:  
         self.id = row[0]  
@@ -42,11 +46,11 @@ class Fish:
         self.update_time = row[10]
         
     @staticmethod
-    def from_rows(rows: list[tuple]) -> list['Fish']:
+    def from_rows(rows: list[tuple]) -> list['FishIndex']:
         res = []
         for row in rows:
             try:
-                res.append(Fish(row))
+                res.append(FishIndex(row))
             except Exception as e:
                 # todo: Note may print long bytes
                 e.add_note(f"Note: row={row}")

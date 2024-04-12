@@ -74,7 +74,7 @@ class Service():
             is_locked: bool = None,
             page_num: int = None,
             page_size: int = None,
-        ) -> tuple[int, list[Fish]]:
+        ) -> tuple[int, list[FishIndex]]:
         if type != None:
             type = [e.name for e in type]
         if tags != None:
@@ -90,7 +90,7 @@ class Service():
         )
     
     @staticmethod
-    def pick_fish(id) -> Fish:
+    def pick_fish(id) -> FishIndex:
         res = DB.fish__pick(id)
         if len(res) == 0:
             return None
