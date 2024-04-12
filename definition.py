@@ -29,14 +29,14 @@ class FishIndex:
         self.type = row[2]
         if self.type == 'text':
             if isinstance(row[3], str):
-                self.value = row[3]
+                self.preview = row[3]
             else:
                 try:
-                    self.value = ybytes(row[3]).to_str()
+                    self.preview = ybytes(row[3]).to_str()
                 except:
-                    self.value = None
+                    self.preview = None
         else:
-            self.value = None
+            self.preview = None
         self.description = row[4] 
         self.tags = [] if row[5] == '' else row[5].split(',') 
         self.is_marked = True if row[6] == 1 else False
