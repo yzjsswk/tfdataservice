@@ -5,8 +5,6 @@ from definition import FishIndex
 
 class DB:
 
-    fp = ystr(Config.path__db).filepath()
-
     @staticmethod
     def request__insert (
         request_id: str,
@@ -17,7 +15,7 @@ class DB:
         response: str,
         extra_info: str
     ) -> None:
-        DB.fp.db() \
+        ystr(Config.path__db).filepath().db() \
             .table('request') \
             .row() \
             .field('request_id', request_id) \
@@ -31,7 +29,7 @@ class DB:
         
     @staticmethod
     def request__update_time(request_id: str, time_cost: str) -> None:
-        DB.fp.db() \
+        ystr(Config.path__db).filepath().db() \
             .table('request') \
             .row() \
             .field('time_cost', time_cost) \
@@ -75,12 +73,12 @@ class DB:
             extra += f" limit {page_size}"
         if page_num != None:
             extra += f" offset {page_size * (page_num-1)}"
-        cnt = DB.fp.db() \
+        cnt = ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .cols('count(*)') \
             .where(condition) \
             .select(print_sql=True)[0][0]
-        fish = DB.fp.db() \
+        fish = ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .where(condition) \
             .extra(extra) \
@@ -89,7 +87,7 @@ class DB:
 
     @staticmethod
     def fish__pick(id: int) -> list[FishIndex]:
-        res = DB.fp.db() \
+        res = ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .where(f"id={id}") \
             .select(print_sql=True)
@@ -97,7 +95,7 @@ class DB:
     
     @staticmethod
     def fish__exist(identity: str) -> bool:
-        res = DB.fp.db().execute(f"select count(*) from fish where identity='{identity}';", print_sql=True)
+        res = ystr(Config.path__db).filepath().db().execute(f"select count(*) from fish where identity='{identity}';", print_sql=True)
         return res[0][0] > 0
     
     @staticmethod
@@ -109,7 +107,7 @@ class DB:
             tags: str,
             extra_info: str,
         ) -> None:
-        DB.fp.db() \
+        ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .row() \
             .field('value', ..., value) \
@@ -132,7 +130,7 @@ class DB:
             is_locked: int = None,
             extra_info: str = None,
         ) -> None:
-        DB.fp.db() \
+        ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .row() \
             .field('value', ..., value) \
@@ -148,11 +146,11 @@ class DB:
         
     @staticmethod
     def fish__delete(id: int) -> None:
-        DB.fp.db().table('fish').where(f'id={id}').delete(print_sql=True)
+        ystr(Config.path__db).filepath().db().table('fish').where(f'id={id}').delete(print_sql=True)
 
     @staticmethod
     def fish__select_bytes(identity: str) -> bytes:
-        res = DB.fp.db().table('fish').cols('value').where(f"identity='{identity}'").select(print_sql=True)
+        res = ystr(Config.path__db).filepath().db().table('fish').cols('value').where(f"identity='{identity}'").select(print_sql=True)
         if len(res) > 0:
             return res[0][0]
         return None
