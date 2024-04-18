@@ -24,6 +24,10 @@ class ybytes(bytes):
         with open(filepath, 'rb') as f:
             content = f.read()
         return ybytes(content)
+    
+    def to_file(self, filepath: str):
+        with open(filepath, 'wb') as f:
+            f.write(self)
 
     @staticmethod
     def from_str(s: str, encode='utf-8') -> 'ybytes':
@@ -38,8 +42,16 @@ class ybytes(bytes):
         except:
             return ystr(self.__str__()) 
     
-    def size(self, n=2) -> 'ystr':
+    def size(self, unit=None, n=2) -> 'ystr':
         B_count = len(self)
+        if ystr(unit).of('B'):
+            return f'{round(B_count, n)}B'
+        if ystr(unit).of('KB'):
+            return f'{round(B_count/1024, n)}B'
+        if ystr(unit).of('MB'):
+            return f'{round(B_count/(1024*1024), n)}B'
+        if ystr(unit).of('GB'):
+            return f'{round(B_count/(1024*1024*1024), n)}B'
         if B_count < 1024:
             return f'{round(B_count, n)}B'
         KB_count = B_count / 1024
