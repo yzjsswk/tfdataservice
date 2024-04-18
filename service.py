@@ -1,5 +1,5 @@
 from yfunc import *
-from db import DB
+from storage import DB
 from definition import *
 from config import Config
 

@@ -2,7 +2,7 @@ from yfunc import *
 from web import tfwebserver
 from task import tftask
 from config import Config
-from db import DB
+from storage import DB
 import os
 
 class tfdataservice:
