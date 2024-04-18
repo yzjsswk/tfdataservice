@@ -2,6 +2,7 @@ from yfunc import *
 from web import tfwebserver
 from task import tftask
 from config import Config
+from db import DB
 import os
 
 class tfdataservice:
@@ -19,8 +20,10 @@ class tfdataservice:
         if not os.path.exists(Config.path__fishdata__expired):
             os.makedirs(Config.path__fishdata__expired)
         if not os.path.exists(Config.path__db):
-            # todo: create db and table
-            pass
+            with open(Config.path__db, 'w') as _:
+                pass
+            for sql in DB.init_sql:
+                ystr(Config.path__db).filepath().db().execute(sql)
         logger.remove(None)
         logger.add(lambda message: print(message))
         logger.add(Config.path__log + "/{time:YYYY-MM-DD}.log", rotation="00:00")

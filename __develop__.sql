@@ -1,4 +1,4 @@
--- init
+-------------------------------------------------
 -- drop table if exists fish;
 -- create table fish (
 --     id integer PRIMARY KEY AUTOINCREMENT,
@@ -37,3 +37,7 @@
 --     extra_info text,
 --     create_time DATETIME NOT NULL DEFAULT(datetime(CURRENT_TIMESTAMP, 'localtime'))
 -- );
+-------------------------------------------------
+
+-- delete from fish;
+
