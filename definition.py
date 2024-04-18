@@ -27,23 +27,13 @@ class FishIndex:
         self.id = row[0]  
         self.identity = row[1] 
         self.type = row[2]
-        if self.type == 'text':
-            if isinstance(row[3], str):
-                self.preview = row[3]
-            else:
-                try:
-                    self.preview = ybytes(row[3]).to_str()
-                except:
-                    self.preview = None
-        else:
-            self.preview = None
-        self.description = row[4] 
-        self.tags = [] if row[5] == '' else row[5].split(',') 
-        self.is_marked = True if row[6] == 1 else False
-        self.is_locked = True if row[7] == 1 else False
-        self.extra_info = row[8] 
-        self.create_time = row[9] 
-        self.update_time = row[10]
+        self.description = row[3] 
+        self.tags = [] if row[4] == '' else row[4].split(',') 
+        self.is_marked = True if row[5] == 1 else False
+        self.is_locked = True if row[6] == 1 else False
+        self.extra_info = row[7] 
+        self.create_time = row[8] 
+        self.update_time = row[9]
         
     @staticmethod
     def from_rows(rows: list[tuple]) -> list['FishIndex']:

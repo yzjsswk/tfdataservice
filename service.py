@@ -67,7 +67,7 @@ class Service():
             fuzzys: str = None, # like value or like desc
             value: str = None, # like
             description: str = None, # like
-            identity: str = None,
+            identity: list[str] = None, # match any
             type: list[FishType] = None, # match any
             tags: list[str] = None, # match each
             is_marked: bool = None,
@@ -83,20 +83,14 @@ class Service():
             is_marked = 1 if is_marked else 0
         if is_locked != None:
             is_locked = 1 if is_locked else 0
-        return DB.fish__search(
-            fuzzys=fuzzys, value=value, description=description, identity=identity,
-            type=type, tags=tags, is_marked=is_marked, is_locked=is_locked,
+        # todo: if value != None, search dataindex got identity-x, inter with identity, then call db
+        total_count, fish = DB.fish__search(
+            identity=identity, type=type, description=description, 
+            tags=tags, is_marked=is_marked, is_locked=is_locked,
             page_num=page_num, page_size=page_size, 
         )
-    
-    @staticmethod
-    def pick_fish(id) -> FishIndex:
-        res = DB.fish__pick(id)
-        if len(res) == 0:
-            return None
-        if len(res) > 1:
-            logger.warning(f'fish(id={id}) duplicated in database, ignore others')
-        return res[0]
+        # todo: if with_preview=true, read fishdata and add preview to fish index
+        return total_count, fish
     
     @staticmethod
     def add_fish (
@@ -114,20 +108,22 @@ class Service():
             tags = ylist(tags).unique().sort()
             tags = ','.join(tags)
         identity = ybytes(value).md5()
+        size__mb = ybytes(value).size(unit='mb', n=0).split('.')[0]
         if DB.fish__exist(identity):
-            return get_dict_resp(RespStatus.fail, 'data duplicated', 'SVAF')
-        # todo: check size and save file
+            return get_dict_resp(RespStatus.fail, 'fishdata duplicated', 'SVAF')
+        fishdata_filename = f'{identity}_{type.name}_{size__mb}_{ystr().timestamp().now()}'
+        ybytes(value).to_file(os.path.join(Config.path__fishdata__active, fishdata_filename))
         DB.fish__insert(
-            value=value, description=description, identity=identity,
-            type=type.name, tags=tags, extra_info=extra_info,
+            identity=identity,type=type.name, 
+            description=description, tags=tags, extra_info=extra_info,
         )
         return get_dict_resp(RespStatus.success, 'success', 'SVAF')
     
     @staticmethod
     def remove_fish(identity: str) -> dict:
-        res = DB.fish__search(identity=identity)
+        _, res = DB.fish__search(identity=[identity])
         if len(res) == 0:
-            return get_dict_resp(RespStatus.skip, 'data not exists', 'SVRF')
+            return get_dict_resp(RespStatus.skip, 'fish not exists', 'SVRF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVRF')
         DB.fish__delete(id=res[0].id)
@@ -135,9 +131,9 @@ class Service():
     
     @staticmethod
     def mark_fish(identity: str) -> dict:
-        res = DB.fish__search(identity=identity)
+        _, res = DB.fish__search(identity=[identity])
         if len(res) == 0:
-            return get_dict_resp(RespStatus.fail, 'data not exists', 'SVMF')
+            return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVMF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVMF')
         if res[0].is_marked:
@@ -147,9 +143,9 @@ class Service():
     
     @staticmethod
     def unmark_fish(identity: str) -> dict:
-        res = DB.fish__search(identity=identity)
+        _, res = DB.fish__search(identity=[identity])
         if len(res) == 0:
-            return get_dict_resp(RespStatus.fail, 'data not exists', 'SVUMF')
+            return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVUMF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVUMF')
         if not res[0].is_marked:
@@ -159,9 +155,9 @@ class Service():
     
     @staticmethod
     def lock_fish(identity: str) -> dict:
-        res = DB.fish__search(identity=identity)
+        _, res = DB.fish__search(identity=[identity])
         if len(res) == 0:
-            return get_dict_resp(RespStatus.fail, 'data not exists', 'SVLF')
+            return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVLF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.skip, 'fish has been locked', 'SVLF')
         DB.fish__update(id=res[0].id, is_locked=1)
@@ -169,9 +165,9 @@ class Service():
     
     @staticmethod
     def unlock_fish(identity: str) -> dict:
-        res = DB.fish__search(identity=identity)
+        _, res = DB.fish__search(identity=[identity])
         if len(res) == 0:
-            return get_dict_resp(RespStatus.fail, 'data not exists', 'SVULF')
+            return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVULF')
         if not res[0].is_locked:
             return get_dict_resp(RespStatus.skip, 'fish is not locked', 'SVULF')
         DB.fish__update(id=res[0].id, is_locked=0)
@@ -179,9 +175,9 @@ class Service():
     
     @staticmethod
     def pin_fish(identity: str) -> dict:
-        res = DB.fish__search(identity=identity)
+        _, res = DB.fish__search(identity=[identity])
         if len(res) == 0:
-            return get_dict_resp(RespStatus.fail, 'data not exists', 'SVPF')
+            return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVPF')
         DB.fish__update(id=res[0].id, type=res[0].type)
         return get_dict_resp(RespStatus.success, 'success', 'SVPF')
     
@@ -194,9 +190,9 @@ class Service():
     ) -> dict:
         if description == None and tags == None and extra_info == None:
             return get_dict_resp(RespStatus.skip, 'nothing to update', 'SVMDF')
-        res = DB.fish__search(identity=identity)
+        _, res = DB.fish__search(identity=[identity])
         if len(res) == 0:
-            return get_dict_resp(RespStatus.fail, 'data not exists', 'SVMDF')
+            return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVMDF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVMDF')
         if tags != None:
@@ -209,8 +205,8 @@ class Service():
     def fetch_resource(identity: str) -> bytes:
         if identity == None:
             return None
-        # todo: resource index by task
-        for f in ystr(Config.path__resource).filepath().search():
-            if identity == f.filepath().suffix(keep_ext=False):
+        # todo: fishdata identity cache by task
+        for f in ystr(Config.path__fishdata__active).filepath().search():
+            if identity == f.filepath().suffix(keep_ext=False).split('_')[0]:
                 return ybytes.from_file(f)
-        return DB.fish__select_bytes(identity=identity)
+        return None

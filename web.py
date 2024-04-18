@@ -129,8 +129,12 @@ def search_fish (
             tags: str = None, 
             is_marked: str = None,
             is_locked: str = None,
-            page: str = None,
+            page_num: str = None,
+            page_size: str = None,
+            with_preview: str = None,
     ) -> dict:
+    if identity != None:
+        identity = identity.split(',')
     if type != None:
         type = ylist(FishType.from_name(t) for t in type.split(',')).filter(FishType)
     if tags != None:
@@ -149,19 +153,18 @@ def search_fish (
             is_locked = False
         else:
             is_locked = None
-    if page != None:
-        try:
-            page = page.split(',')
-            page_num = int(page[0]) if len(page) > 0 else 1
-            page_size = int(page[1]) if len(page) > 1 else 10
-        except:
-            return get_dict_resp(RespStatus.fail, 'parameter invalid: page', 'CTSF')
-    else:
-        page_num, page_size = 1, 10
+    try:
+        page_num = int(page_num)
+    except:
+        page_num = 1
+    try:
+        page_size = int(page_size)
+    except:
+        page_size = 10
     if page_num < 1:
-        return get_dict_resp(RespStatus.fail, 'parameter invalid: page (page_num >= 1)', 'CTSF')
+        page_num = 1
     if page_size < 1 or page_size > 100:
-        return get_dict_resp(RespStatus.fail, 'parameter invalid: page (1 <= page_size <= 100)', 'CTSF')
+        page_size = 10
     total_count, fish = Service.search_fish(
         fuzzys=fuzzys, value=value, description=description, identity=identity,
         type=type, tags=tags, is_marked=is_marked, is_locked=is_locked,
@@ -169,16 +172,11 @@ def search_fish (
     )
     total_page = total_count//page_size if total_count % page_size == 0 else total_count//page_size+1
     return {
-        'page': f'{page_num}/{total_page} ({len(fish)} of {total_count})',
+        'page_num': page_num,
+        'page_size': page_size,
+        'total_page': total_page,
+        'total_count': total_count,
         'fish': fish,
-    }
-
-@tfwebserver.route('/fish/pick', methods=['GET'])
-@control
-def pick_fish(id: str) -> dict:
-    res = Service.pick_fish(id)
-    return {
-        'fish': res,
     }
 
 @tfwebserver.route('/fish/add', methods=['POST'])

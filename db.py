@@ -14,7 +14,6 @@ class DB:
             id integer PRIMARY KEY AUTOINCREMENT,
             identity varchar(64) NOT NULL,
             type varchar(16) NOT NULL,
-            value blob DEFAULT NULL,
             description text NOT NULL DEFAULT '',
             tags varchar(128) NOT NULL DEFAULT '',
             is_marked tinyint NOT NUll DEFAULT 0,
@@ -90,10 +89,8 @@ class DB:
 
     @staticmethod
     def fish__search (
-            fuzzys: str = None,
-            value: str = None,
             description: str = None,
-            identity: str = None,
+            identity: list[str] = None,
             type: list[str] = None,
             tags: list[str] = None,
             is_marked: int = None,
@@ -102,14 +99,11 @@ class DB:
             page_size: int = None,
         ) -> tuple[int, list[FishIndex]]:
         condition = '1=1'
-        if fuzzys != None:
-            condition += f" and (value like '%{fuzzys}%' or description like '%{fuzzys}%')"
-        if value != None:
-            condition += f" and (value = '{value}')"
         if description != None:
-            condition += f" and (description = '{description}')"
+            condition += f" and (description like '%{description}%')"
         if identity != None:
-            condition += f" and (identity = '{identity}')"
+            keyword = "'" + "','".join(identity) + "'"
+            condition += f" and (identity in ({keyword}))"
         if type != None:
             keyword = "'" + "','".join(type) + "'"
             condition += f" and (type in ({keyword}))"
@@ -152,20 +146,18 @@ class DB:
     
     @staticmethod
     def fish__insert (
-            value: bytes,
-            description: str,
             identity: str,
             type: str,
+            description: str,
             tags: str,
             extra_info: str,
         ) -> None:
         ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .row() \
-            .field('value', ..., value) \
-            .field('description', description) \
             .field('identity', identity) \
             .field('type', type) \
+            .field('description', description) \
             .field('tags', tags) \
             .field('extra_info', extra_info) \
             .insert(print_sql=True)
@@ -173,10 +165,9 @@ class DB:
     @staticmethod
     def fish__update (
             id: int,
-            value: bytes = None,
-            description: str = None,
             identity: str = None,
             type: str = None,
+            description: str = None,
             tags: str = None,
             is_marked: int = None,
             is_locked: int = None,
@@ -185,10 +176,9 @@ class DB:
         ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .row() \
-            .field('value', ..., value) \
+            .field('type', type) \
             .field('description', description) \
             .field('identity', identity) \
-            .field('type', type) \
             .field('tags', tags) \
             .field('is_marked', is_marked) \
             .field('is_locked', is_locked) \
@@ -200,9 +190,3 @@ class DB:
     def fish__delete(id: int) -> None:
         ystr(Config.path__db).filepath().db().table('fish').where(f'id={id}').delete(print_sql=True)
 
-    @staticmethod
-    def fish__select_bytes(identity: str) -> bytes:
-        res = ystr(Config.path__db).filepath().db().table('fish').cols('value').where(f"identity='{identity}'").select(print_sql=True)
-        if len(res) > 0:
-            return res[0][0]
-        return None
