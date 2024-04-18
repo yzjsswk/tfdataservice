@@ -1,5 +1,6 @@
 from yfunc import *
 from web import tfwebserver
+from task import tftask
 from config import Config
 import os
 
@@ -23,5 +24,5 @@ class tfdataservice:
         logger.remove(None)
         logger.add(lambda message: print(message))
         logger.add(Config.path__log + "/{time:YYYY-MM-DD}.log", rotation="00:00")
-        # todo: run task
+        tftask.run()
         tfwebserver.run(host='0.0.0.0', port=port)
