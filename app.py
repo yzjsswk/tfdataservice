@@ -2,7 +2,7 @@ from yfunc import *
 from web import tfwebserver
 from task import tftask
 from config import Config
-from storage import DB
+from storage import DataBase, FishIndex, FileSystem
 import os
 
 class tfdataservice:
@@ -13,6 +13,9 @@ class tfdataservice:
         Config.init_with_workpath(workpath)
         if not os.path.exists(Config.path__log):
             os.makedirs(Config.path__log)
+        logger.remove(None)
+        logger.add(lambda message: print(message))
+        logger.add(Config.path__log + "/{time:YYYY-MM-DD}.log", rotation="00:00")
         if not os.path.exists(Config.path__fishdata):
             os.makedirs(Config.path__fishdata)
         if not os.path.exists(Config.path__fishdata__active):
@@ -22,10 +25,16 @@ class tfdataservice:
         if not os.path.exists(Config.path__db):
             with open(Config.path__db, 'w') as _:
                 pass
-            for sql in DB.init_sql:
+            for sql in DataBase.init_sql:
                 ystr(Config.path__db).filepath().db().execute(sql)
-        logger.remove(None)
-        logger.add(lambda message: print(message))
-        logger.add(Config.path__log + "/{time:YYYY-MM-DD}.log", rotation="00:00")
+        if not os.path.exists(Config.path__fishindex):
+            os.makedirs(Config.path__fishindex)
+            FishIndex.create_index()
+        FishIndex.open_index()
+        FileSystem.update_cache()
+        if Config.build_index:
+            logger.info(f'start building index at {Config.path__fishindex} ...')
+            FishIndex.build_index()
+            logger.info('finish building index')
         tftask.run()
         tfwebserver.run(host='0.0.0.0', port=port)

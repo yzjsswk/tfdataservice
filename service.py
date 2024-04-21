@@ -1,5 +1,5 @@
 from yfunc import *
-from storage import DB
+from storage import DataBase, FileSystem, FishIndex
 from definition import *
 from config import Config
 
@@ -20,18 +20,18 @@ class Service():
             real_input['value'] = str(real_input['value'])
         real_input = ystr().json().from_object(real_input)
         response = ystr().json().from_object(response)
-        DB.request__insert(request_id, url, time_cost, origin_input, real_input, response, extra_info)
+        DataBase.request__insert(request_id, url, time_cost, origin_input, real_input, response, extra_info)
 
     @staticmethod
     def update_request_time (
         request_id: str,
         time_cost_info: dict,
     ) -> None:
-        DB.request__update_time(request_id, ystr().json().from_object(time_cost_info))
+        DataBase.request__update_time(request_id, ystr().json().from_object(time_cost_info))
         
     @staticmethod
     def statistic() -> dict:
-        _, res = DB.fish__search()
+        _, res = DataBase.fish__search()
         type_stats = {}
         tag_stats = {}
         mark_stats = {'marked':0, 'unmarked':0}
@@ -74,7 +74,8 @@ class Service():
             is_locked: bool = None,
             page_num: int = None,
             page_size: int = None,
-        ) -> tuple[int, list[FishIndex]]:
+            with_preview: bool = None,
+        ) -> tuple[int, list[FishResp]]:
         if type != None:
             type = [e.name for e in type]
         if tags != None:
@@ -83,13 +84,39 @@ class Service():
             is_marked = 1 if is_marked else 0
         if is_locked != None:
             is_locked = 1 if is_locked else 0
-        # todo: if value != None, search dataindex got identity-x, inter with identity, then call db
-        total_count, fish = DB.fish__search(
-            identity=identity, type=type, description=description, 
-            tags=tags, is_marked=is_marked, is_locked=is_locked,
-            page_num=page_num, page_size=page_size, 
-        )
-        # todo: if with_preview=true, read fishdata and add preview to fish index
+        if fuzzys != None:
+            # use fuzzy(ignore value and description), match value or descrption
+            identity__value_hits = FishIndex.search_document(fuzzys)
+            total_count, fish = DataBase.fish__search(
+                value_identity=identity__value_hits, identity=identity, description=fuzzys,
+                type=type, tags=tags, is_marked=is_marked, is_locked=is_locked,
+                page_num=page_num, page_size=page_size, 
+            )
+        else:
+            # use value and description(ignore fuzzy), match value and description
+            if value != None:
+                identity__value_hits = FishIndex.search_document(value)
+                if identity != None:
+                    identity = ylist(identity).inter(identity__value_hits)
+                else:
+                    identity = identity__value_hits
+            total_count, fish = DataBase.fish__search(
+                identity=identity, description=description,
+                type=type, tags=tags, is_marked=is_marked, is_locked=is_locked,
+                page_num=page_num, page_size=page_size, 
+            )
+        if with_preview:
+            for f in fish:
+                if f.type != 'text':
+                    continue
+                try:
+                    fishdata = FileSystem.fishdata__read(f.identity)
+                    if fishdata == None:
+                        logger.warning(f'fish exists in db but fishdata not found, ignore preview, identity = {f.identity}')
+                    else:    
+                        f.preview = ybytes(fishdata).to_str()
+                except:
+                    logger.warning(f'parse text fish data to str fail, ignore preview, identity = {f.identity}')
         return total_count, fish
     
     @staticmethod
@@ -108,77 +135,79 @@ class Service():
             tags = ylist(tags).unique().sort()
             tags = ','.join(tags)
         identity = ybytes(value).md5()
-        size__mb = ybytes(value).size(unit='mb', n=0).split('.')[0]
-        if DB.fish__exist(identity):
-            return get_dict_resp(RespStatus.fail, 'fishdata duplicated', 'SVAF')
-        fishdata_filename = f'{identity}_{type.name}_{size__mb}_{ystr().timestamp().now()}'
-        ybytes(value).to_file(os.path.join(Config.path__fishdata__active, fishdata_filename))
-        DB.fish__insert(
-            identity=identity,type=type.name, 
-            description=description, tags=tags, extra_info=extra_info,
+        if DataBase.fish__exist(identity):
+            return get_dict_resp(RespStatus.fail, 'fishdata exists', 'SVAF')
+        FileSystem.fishdata__save(value, type)
+        if type == FishType.text:
+            FishIndex.add_document(identity, ybytes(value).to_str())
+        DataBase.fish__insert(
+            identity=identity,type=type.name,description=description,
+            tags=tags, extra_info=extra_info,
         )
         return get_dict_resp(RespStatus.success, 'success', 'SVAF')
     
     @staticmethod
     def remove_fish(identity: str) -> dict:
-        _, res = DB.fish__search(identity=[identity])
+        _, res = DataBase.fish__search(identity=[identity])
         if len(res) == 0:
             return get_dict_resp(RespStatus.skip, 'fish not exists', 'SVRF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVRF')
-        DB.fish__delete(id=res[0].id)
+        FileSystem.fishdata__expire(identity)
+        FishIndex.remove_document(identity)
+        DataBase.fish__delete(id=res[0].id)
         return get_dict_resp(RespStatus.success, 'success', 'SVRF')
     
     @staticmethod
     def mark_fish(identity: str) -> dict:
-        _, res = DB.fish__search(identity=[identity])
+        _, res = DataBase.fish__search(identity=[identity])
         if len(res) == 0:
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVMF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVMF')
         if res[0].is_marked:
             return get_dict_resp(RespStatus.skip, 'fish has been marked', 'SVMF')
-        DB.fish__update(id=res[0].id, is_marked=1)
+        DataBase.fish__update(id=res[0].id, is_marked=1)
         return get_dict_resp(RespStatus.success, 'success', 'SVMF')
     
     @staticmethod
     def unmark_fish(identity: str) -> dict:
-        _, res = DB.fish__search(identity=[identity])
+        _, res = DataBase.fish__search(identity=[identity])
         if len(res) == 0:
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVUMF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVUMF')
         if not res[0].is_marked:
             return get_dict_resp(RespStatus.skip, 'fish is not marked', 'SVUMF')
-        DB.fish__update(id=res[0].id, is_marked=0)
+        DataBase.fish__update(id=res[0].id, is_marked=0)
         return get_dict_resp(RespStatus.success, 'success', 'SVUMF')
     
     @staticmethod
     def lock_fish(identity: str) -> dict:
-        _, res = DB.fish__search(identity=[identity])
+        _, res = DataBase.fish__search(identity=[identity])
         if len(res) == 0:
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVLF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.skip, 'fish has been locked', 'SVLF')
-        DB.fish__update(id=res[0].id, is_locked=1)
+        DataBase.fish__update(id=res[0].id, is_locked=1)
         return get_dict_resp(RespStatus.success, 'success', 'SVLF')
     
     @staticmethod
     def unlock_fish(identity: str) -> dict:
-        _, res = DB.fish__search(identity=[identity])
+        _, res = DataBase.fish__search(identity=[identity])
         if len(res) == 0:
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVULF')
         if not res[0].is_locked:
             return get_dict_resp(RespStatus.skip, 'fish is not locked', 'SVULF')
-        DB.fish__update(id=res[0].id, is_locked=0)
+        DataBase.fish__update(id=res[0].id, is_locked=0)
         return get_dict_resp(RespStatus.success, 'success', 'SVULF')
     
     @staticmethod
     def pin_fish(identity: str) -> dict:
-        _, res = DB.fish__search(identity=[identity])
+        _, res = DataBase.fish__search(identity=[identity])
         if len(res) == 0:
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVPF')
-        DB.fish__update(id=res[0].id, type=res[0].type)
+        DataBase.fish__update(id=res[0].id, type=res[0].type)
         return get_dict_resp(RespStatus.success, 'success', 'SVPF')
     
     @staticmethod
@@ -190,7 +219,7 @@ class Service():
     ) -> dict:
         if description == None and tags == None and extra_info == None:
             return get_dict_resp(RespStatus.skip, 'nothing to update', 'SVMDF')
-        _, res = DB.fish__search(identity=[identity])
+        _, res = DataBase.fish__search(identity=[identity])
         if len(res) == 0:
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVMDF')
         if res[0].is_locked:
@@ -198,15 +227,9 @@ class Service():
         if tags != None:
             tags = ylist(tags).unique().sort()
             tags = ','.join(tags)
-        DB.fish__update(id=res[0].id, description=description, tags=tags, extra_info=extra_info)
+        DataBase.fish__update(id=res[0].id, description=description, tags=tags, extra_info=extra_info)
         return get_dict_resp(RespStatus.success, 'success', 'SVMDF')    
     
     @staticmethod
-    def fetch_resource(identity: str) -> bytes:
-        if identity == None:
-            return None
-        # todo: fishdata identity cache by task
-        for f in ystr(Config.path__fishdata__active).filepath().search():
-            if identity == f.filepath().suffix(keep_ext=False).split('_')[0]:
-                return ybytes.from_file(f)
-        return None
+    def fetch_resource(identity: str) -> bytes | None:
+        return FileSystem.fishdata__read(identity)

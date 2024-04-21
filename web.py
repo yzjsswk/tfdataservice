@@ -74,7 +74,7 @@ def control(func):
         except Exception as e:
             e.add_note(f'Note: url = {request.base_url}')
             logger.exception(e)
-            res = {'code':-999, 'msg': str(e)}
+            res = {'code':-999, 'status': 'fail', 'msg': str(e)}
             t2 = int(time.time()*1000)
         resp = handle_output(res, t2-t1)    
         t3 = int(time.time()*1000)
@@ -153,6 +153,10 @@ def search_fish (
             is_locked = False
         else:
             is_locked = None
+    if with_preview != None and ystr(with_preview).of('false', '0'):
+            with_preview = False
+    else:
+        with_preview = True
     try:
         page_num = int(page_num)
     except:
@@ -168,7 +172,7 @@ def search_fish (
     total_count, fish = Service.search_fish(
         fuzzys=fuzzys, value=value, description=description, identity=identity,
         type=type, tags=tags, is_marked=is_marked, is_locked=is_locked,
-        page_num=page_num, page_size=page_size,
+        page_num=page_num, page_size=page_size, with_preview = with_preview,
     )
     total_page = total_count//page_size if total_count % page_size == 0 else total_count//page_size+1
     return {

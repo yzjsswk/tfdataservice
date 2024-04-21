@@ -1,9 +1,13 @@
 from yfunc import *
 from config import Config
-from definition import FishIndex
+from definition import FishResp, FishType
+import os
+from whoosh import index
+from whoosh.fields import Schema, TEXT, ID
+from whoosh.query import Term, Prefix, FuzzyTerm
+from whoosh.qparser import QueryParser
 
-
-class DB:
+class DataBase:
 
     init_sql = [
         """
@@ -90,6 +94,7 @@ class DB:
     @staticmethod
     def fish__search (
             description: str = None,
+            value_identity: list[str] = None,
             identity: list[str] = None,
             type: list[str] = None,
             tags: list[str] = None,
@@ -97,10 +102,16 @@ class DB:
             is_locked: int = None,
             page_num: int = None,
             page_size: int = None,
-        ) -> tuple[int, list[FishIndex]]:
+        ) -> tuple[int, list[FishResp]]:
         condition = '1=1'
-        if description != None:
+        if description != None and value_identity != None:
+            keyword = "'" + "','".join(value_identity) + "'"
+            condition += f" and (description like '%{description}%' or identity in ({keyword}))"
+        if description != None and value_identity == None:
             condition += f" and (description like '%{description}%')"
+        if value_identity != None and description == None:
+            keyword = "'" + "','".join(value_identity) + "'"
+            condition += f" and (identity in ({keyword}))"
         if identity != None:
             keyword = "'" + "','".join(identity) + "'"
             condition += f" and (identity in ({keyword}))"
@@ -129,15 +140,15 @@ class DB:
             .where(condition) \
             .extra(extra) \
             .select(print_sql=True)
-        return cnt, FishIndex.from_rows(fish)
+        return cnt, FishResp.from_rows(fish)
 
     @staticmethod
-    def fish__pick(id: int) -> list[FishIndex]:
+    def fish__pick(id: int) -> list[FishResp]:
         res = ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .where(f"id={id}") \
             .select(print_sql=True)
-        return FishIndex.from_rows(res)
+        return FishResp.from_rows(res)
     
     @staticmethod
     def fish__exist(identity: str) -> bool:
@@ -190,3 +201,87 @@ class DB:
     def fish__delete(id: int) -> None:
         ystr(Config.path__db).filepath().db().table('fish').where(f'id={id}').delete(print_sql=True)
 
+class FishIndex:
+
+    schema = Schema (
+        identity = ID(unique=True, stored=True),
+        value = TEXT(),
+    )
+
+    idx: index.FileIndex = None
+    
+    def open_index() -> None:
+        FishIndex.idx = index.open_dir(Config.path__fishindex)
+    
+    def create_index() -> None:
+        index.create_in(Config.path__fishindex, FishIndex.schema)
+
+    def add_document(identity: str, value: str) -> None:
+        writer = FishIndex.idx.writer()
+        try:
+            writer.add_document(identity=identity, value=value)
+            writer.commit()
+        except:
+            writer.cancel()
+            raise
+
+    def remove_document(identity: str) -> None:
+        writer = FishIndex.idx.writer()
+        try:
+            writer.delete_by_term("identity", identity)
+            writer.commit()
+        except:
+            writer.cancel()
+            raise
+
+    def search_document(keyword: str) -> list[str]:
+        qp = QueryParser("value", schema=FishIndex.schema)
+        q = qp.parse(f'*{keyword}*')
+        with FishIndex.idx.searcher() as searcher:
+            results = searcher.search(q)
+            identity_hits = [result['identity'] for result in results]
+        return ylist(identity_hits).unique()
+
+    def build_index():
+        pass
+
+class FileSystem:
+
+    fishdata_url_cache: dict[str, str] = {}
+
+    def update_cache() -> None:
+        new_cache = {}
+        for url in FileSystem.fishdata__urls():
+            filename = os.path.basename(url)
+            try:
+                identity = filename.split('_')[0]
+                if identity in new_cache:
+                    logger.warning(f'duplicated identity of fishdata: {new_cache[identity]} and {url}')
+                else:
+                    new_cache[identity] = url
+            except:
+                logger.warning(f'fishdata file ignored, filename invalid: {url}')
+        FileSystem.fishdata_url_cache = new_cache
+
+    def fishdata__urls() -> list[str]:
+        return ystr(Config.path__fishdata__active).filepath().search()
+
+    def fishdata__save(value: bytes, type: FishType) -> None:
+        identity = ybytes(value).md5() # duplicate calculate
+        fishdata_filename = f'{identity}_{type.name}_{ystr().timestamp().now()}'
+        ybytes(value).to_file(os.path.join(Config.path__fishdata__active, fishdata_filename))
+        FileSystem.update_cache()
+
+    def fishdata__expire(identity: str) -> None:
+        for url in FileSystem.fishdata__urls():
+            filename = os.path.basename(url)
+            if filename.startswith(identity):
+                os.rename(url, os.path.join(Config.path__fishdata__expired, filename))
+        FileSystem.update_cache()
+
+    def fishdata__read(identity: str) -> bytes | None:
+        if identity == None:
+            return None
+        if identity in FileSystem.fishdata_url_cache:
+            return ybytes.from_file(FileSystem.fishdata_url_cache[identity])
+        return None

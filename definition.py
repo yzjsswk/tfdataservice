@@ -21,7 +21,7 @@ class RespStatus(Enum):
     skip = 'P'
     fail = 'F'
 
-class FishIndex:
+class FishResp:
 
     def __init__(self, row: tuple) -> None:  
         self.id = row[0]  
@@ -34,13 +34,14 @@ class FishIndex:
         self.extra_info = row[7] 
         self.create_time = row[8] 
         self.update_time = row[9]
+        self.preview = None
         
     @staticmethod
-    def from_rows(rows: list[tuple]) -> list['FishIndex']:
+    def from_rows(rows: list[tuple]) -> list['FishResp']:
         res = []
         for row in rows:
             try:
-                res.append(FishIndex(row))
+                res.append(FishResp(row))
             except Exception as e:
                 # todo: Note may print long bytes
                 e.add_note(f"Note: row={row}")
