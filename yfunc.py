@@ -47,11 +47,11 @@ class ybytes(bytes):
         if ystr(unit).of('B'):
             return f'{round(B_count, n)}B'
         if ystr(unit).of('KB'):
-            return f'{round(B_count/1024, n)}B'
+            return f'{round(B_count/1024, n)}KB'
         if ystr(unit).of('MB'):
-            return f'{round(B_count/(1024*1024), n)}B'
+            return f'{round(B_count/(1024*1024), n)}MB'
         if ystr(unit).of('GB'):
-            return f'{round(B_count/(1024*1024*1024), n)}B'
+            return f'{round(B_count/(1024*1024*1024), n)}GB'
         if B_count < 1024:
             return f'{round(B_count, n)}B'
         KB_count = B_count / 1024
@@ -1389,14 +1389,15 @@ class ylist(list):
         super().append(obj)
         return self
 
-    def unique(self) -> 'ylist':
-        ret = ylist()
-        st = set()
+    def inter(self, another_collection) -> 'ylist':
+        ret = set()
         for x in self:
-            if x not in st:
-                ret.append(x)
-                st.add(x)
-        return ret
+            if x in another_collection:
+                ret.add(x)
+        return ylist(ret)
+    
+    def unique(self) -> 'ylist':
+        return ylist(set(self))
     
     def sort(self, key=None, reverse=False) -> 'ylist':
         super().sort(key=key, reverse=reverse)
