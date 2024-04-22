@@ -23,25 +23,51 @@ class RespStatus(Enum):
 
 class FishResp:
 
-    def __init__(self, row: tuple) -> None:  
-        self.id = row[0]  
-        self.identity = row[1] 
-        self.type = row[2]
-        self.description = row[3] 
-        self.tags = [] if row[4] == '' else row[4].split(',') 
-        self.is_marked = True if row[5] == 1 else False
-        self.is_locked = True if row[6] == 1 else False
-        self.extra_info = row[7] 
-        self.create_time = row[8] 
-        self.update_time = row[9]
-        self.preview = None
+    def __init__(self, 
+            id: str, identity: str, type: str, description: str, 
+            tags: list[str], is_marked: bool, is_locked: bool,
+            extra_info: str, create_time: str, update_time: str, preview: str
+        ) -> None:
+        self.id = id
+        self.identity = identity
+        self.type = type
+        self.description = description
+        self.tags = tags
+        self.is_marked = is_marked
+        self.is_locked = is_locked
+        self.extra_info = extra_info
+        self.create_time = create_time
+        self.update_time = update_time
+        self.preview = preview
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+    
+    def __repr__(self) -> str:
+        return str(self.__dict__)
+
+    @staticmethod
+    def from_row(row: tuple) -> 'FishResp':  
+        return FishResp(
+            id = row[0],
+            identity = row[1],
+            type = row[2],
+            description = row[3],
+            tags = [] if row[4] == '' else row[4].split(','), 
+            is_marked = True if row[5] == 1 else False,
+            is_locked = True if row[6] == 1 else False,
+            extra_info = row[7], 
+            create_time = row[8], 
+            update_time = row[9],
+            preview = None,
+        )
         
     @staticmethod
     def from_rows(rows: list[tuple]) -> list['FishResp']:
         res = []
         for row in rows:
             try:
-                res.append(FishResp(row))
+                res.append(FishResp.from_row(row))
             except Exception as e:
                 # todo: Note may print long bytes
                 e.add_note(f"Note: row={row}")

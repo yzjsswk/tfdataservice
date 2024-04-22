@@ -4,7 +4,6 @@
 --     id integer PRIMARY KEY AUTOINCREMENT,
 --     identity varchar(64) NOT NULL,
 --     type varchar(16) NOT NULL,
---     value blob DEFAULT NULL,
 --     description text NOT NULL DEFAULT '',
 --     tags varchar(128) NOT NULL DEFAULT '',
 --     is_marked tinyint NOT NUll DEFAULT 0,
