@@ -2,11 +2,11 @@ from yfunc import *
 from enum import Enum
 
 class FishType(Enum):
-    text = 1
-    image = 2
-    pdf = 3
-    music = 4
-    video = 5
+    txt = 1
+    tiff = 2
+    png = 3
+    jpg = 4
+    pdf = 5
     other = 99
 
     @staticmethod

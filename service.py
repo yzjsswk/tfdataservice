@@ -138,7 +138,7 @@ class Service():
         if DataBase.fish__exist(identity):
             return get_dict_resp(RespStatus.fail, 'fish data exists', 'SVAF')
         FileSystem.fishdata__save(value, type)
-        if type == FishType.text:
+        if type == FishType.txt:
             FishIndex.add_document(identity, ybytes(value).to_str())
         DataBase.fish__insert(
             identity=identity,type=type.name,description=description,
