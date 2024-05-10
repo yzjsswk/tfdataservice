@@ -1,5 +1,6 @@
 from typing import *
 import os
+from io import BytesIO
 import time
 import math
 import itertools as its
@@ -1551,7 +1552,29 @@ class ypic():
 
     def __init__(self, p: Image.Image) -> None:
         self.p = p
+
+    @staticmethod
+    def open(path: str) -> 'ypic':
+        return ypic(Image.open(path))
     
+    def resize(self, width: int, height: int) -> 'ypic':
+        if width == None and height == None:
+            return self
+        w, h = self.p.size
+        if width == None:
+            width = w * height // h
+        if height == None:
+            height = h * width // w
+        self.p = self.p.resize((width, height), Image.Resampling.LANCZOS)
+        return self
+    
+    def to_bytes(self, format='png', quality=None) -> bytes:
+        buffer = BytesIO()
+        self.p.save(buffer, format=format, quality=quality)
+        b = buffer.getvalue()
+        buffer.close()
+        return b
+
     @staticmethod
     def empty_pic(w: int, h: int) -> 'ypic':
         return ypic(Image.new('RGB', (w, h)))
