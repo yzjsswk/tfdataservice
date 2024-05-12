@@ -4,6 +4,8 @@
 --     id integer PRIMARY KEY AUTOINCREMENT,
 --     identity varchar(64) NOT NULL,
 --     type varchar(16) NOT NULL,
+--     byte_count integer NOT NULL,
+--     preview blob DEFAULT NULL,
 --     description text NOT NULL DEFAULT '',
 --     tags varchar(128) NOT NULL DEFAULT '',
 --     is_marked tinyint NOT NUll DEFAULT 0,
@@ -38,5 +40,6 @@
 -- );
 -------------------------------------------------
 
--- delete from fish;
+-- delete from request;
+-- select * from request order by create_time desc limit 20;
 
