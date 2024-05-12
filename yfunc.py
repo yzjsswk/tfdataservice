@@ -618,6 +618,33 @@ class filepath():
             return ret
         return dfs_search(self.s)
     
+    def remove(self, Y=False) ->'ystr':
+        if not os.path.exists(self.s):
+            print(f'path not exists: {self.s} ')
+            return
+        files = self.search()
+        dirs = []
+        for root, dir, _ in os.walk(self.s, topdown=False):
+            for d in dir:
+                dirs.append(os.path.join(root, d))
+        if os.path.isdir(self.s):
+            dirs.append(self.s)
+        if Y:
+            for f in files:
+                os.remove(f)
+                print(f'delete file {f}')
+            for d in dirs:
+                os.rmdir(d)
+                print(f'delete dir {d}')
+        else:
+            print(f'will delete {len(files)} files{":" if len(files)>0 else ""}')
+            for f in files:
+                print(f)
+            print(f'will delete {len(dirs)} dirs{":" if len(dirs)>0 else ""}')
+            for d in dirs:
+                print(d)
+            print('use Y=true to execute')
+
     def suffix(self, keep_ext=True) -> 'ystr':
         if keep_ext:
             return self.s.split('/')[-1]
@@ -1568,11 +1595,19 @@ class ypic():
         self.p = self.p.resize((width, height), Image.Resampling.LANCZOS)
         return self
     
+    @staticmethod
+    def from_bytes(image_data: bytes) -> 'ypic':
+        buffer = BytesIO()
+        buffer.write(image_data)
+        image = Image.open(buffer)
+        # buffer.close()
+        return ypic(image)
+    
     def to_bytes(self, format='png', quality=None) -> bytes:
         buffer = BytesIO()
         self.p.save(buffer, format=format, quality=quality)
         b = buffer.getvalue()
-        buffer.close()
+        # buffer.close()
         return b
 
     @staticmethod
