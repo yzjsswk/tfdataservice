@@ -141,13 +141,22 @@ class Service():
         FileSystem.fishdata__save(value, type)
         if type == FishType.txt:
             FishIndex.add_document(identity, ybytes(value).to_str())
+        extra_info_dic = ystr(extra_info).json().to_dic()
         match type:
             case FishType.txt:
-                preview = ybytes(value).to_str()[:2000]
+                text_value = ybytes(value).to_str()
+                extra_info_dic['char_count'] = len(text_value)
+                extra_info_dic['word_count'] = len(text_value.to_words())
+                extra_info_dic['row_count'] = len(text_value.to_rows())
+                preview = text_value[:2000]
             case FishType.tiff:
-                preview = ypic.from_bytes(value).resize(width=512, height=512).to_bytes()
+                image_value = ypic.from_bytes(value)
+                extra_info_dic['width'] = image_value.p.width
+                extra_info_dic['height'] = image_value.p.height
+                preview = image_value.resize(width=512, height=512).to_bytes()
             case _:
                 preview = None
+        extra_info = ystr().json().from_object(extra_info_dic)
         if preview != None and len(preview) > Config.preview_size_limit:
             logger.error(f'add fish - ignore preview: preview size too large, len(preview)={len(preview)}, limit={Config.preview_size_limit}')
             preview = None
