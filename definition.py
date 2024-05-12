@@ -24,13 +24,15 @@ class RespStatus(Enum):
 class FishResp:
 
     def __init__(self, 
-            id: str, identity: str, type: str, description: str, 
-            tags: list[str], is_marked: bool, is_locked: bool,
-            extra_info: str, create_time: str, update_time: str, preview: str
+            id: str, identity: str, type: str, byte_count: int, preview: bytes,
+            description: str, tags: list[str], is_marked: bool, is_locked: bool,
+            extra_info: str, create_time: str, update_time: str
         ) -> None:
         self.id = id
         self.identity = identity
         self.type = type
+        self.byte_count = byte_count
+        self.preview = preview
         self.description = description
         self.tags = tags
         self.is_marked = is_marked
@@ -38,7 +40,7 @@ class FishResp:
         self.extra_info = extra_info
         self.create_time = create_time
         self.update_time = update_time
-        self.preview = preview
+        
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -52,14 +54,15 @@ class FishResp:
             id = row[0],
             identity = row[1],
             type = row[2],
-            description = row[3],
-            tags = [] if row[4] == '' else row[4].split(','), 
-            is_marked = True if row[5] == 1 else False,
-            is_locked = True if row[6] == 1 else False,
-            extra_info = row[7], 
-            create_time = row[8], 
-            update_time = row[9],
-            preview = None,
+            byte_count=row[3],
+            preview=None,
+            description = row[4],
+            tags = [] if row[5] == '' else row[5].split(','), 
+            is_marked = True if row[6] == 1 else False,
+            is_locked = True if row[7] == 1 else False,
+            extra_info = row[8], 
+            create_time = row[9], 
+            update_time = row[10],
         )
         
     @staticmethod

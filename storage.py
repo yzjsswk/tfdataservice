@@ -15,17 +15,19 @@ class DataBase:
         """,
         """
             create table fish (
-            id integer PRIMARY KEY AUTOINCREMENT,
-            identity varchar(64) NOT NULL,
-            type varchar(16) NOT NULL,
-            description text NOT NULL DEFAULT '',
-            tags varchar(128) NOT NULL DEFAULT '',
-            is_marked tinyint NOT NUll DEFAULT 0,
-            is_locked tinyint NOT NUll DEFAULT 0,
-            extra_info text NOT NULL DEFAULT '{}',
-            create_time DATETIME NOT NULL DEFAULT(datetime(CURRENT_TIMESTAMP, 'localtime')),
-            update_time DATETIME NOT NULL DEFAULT(datetime(CURRENT_TIMESTAMP, 'localtime')),
-            CONSTRAINT unique_data UNIQUE (identity)
+                id integer PRIMARY KEY AUTOINCREMENT,
+                identity varchar(64) NOT NULL,
+                type varchar(16) NOT NULL,
+                byte_count integer NOT NULL,
+                preview blob DEFAULT NULL,
+                description text NOT NULL DEFAULT '',
+                tags varchar(128) NOT NULL DEFAULT '',
+                is_marked tinyint NOT NUll DEFAULT 0,
+                is_locked tinyint NOT NUll DEFAULT 0,
+                extra_info text NOT NULL DEFAULT '{}',
+                create_time DATETIME NOT NULL DEFAULT(datetime(CURRENT_TIMESTAMP, 'localtime')),
+                update_time DATETIME NOT NULL DEFAULT(datetime(CURRENT_TIMESTAMP, 'localtime')),
+                CONSTRAINT unique_data UNIQUE (identity)
             );
         """,
         """
@@ -137,18 +139,15 @@ class DataBase:
             .select(print_sql=True)[0][0]
         fish = ystr(Config.path__db).filepath().db() \
             .table('fish') \
+            .cols(
+                'id', 'identity', 'type', 'byte_count', 
+                'description', 'tags', 'is_marked', 'is_locked',
+                'extra_info', 'create_time', 'update_time',
+            ) \
             .where(condition) \
             .extra(extra) \
             .select(print_sql=True)
         return cnt, FishResp.from_rows(fish)
-
-    @staticmethod
-    def fish__pick(id: int) -> list[FishResp]:
-        res = ystr(Config.path__db).filepath().db() \
-            .table('fish') \
-            .where(f"id={id}") \
-            .select(print_sql=True)
-        return FishResp.from_rows(res)
     
     @staticmethod
     def fish__exist(identity: str) -> bool:
@@ -159,6 +158,8 @@ class DataBase:
     def fish__insert (
             identity: str,
             type: str,
+            byte_count: int,
+            preview: bytes,
             description: str,
             tags: str,
             extra_info: str,
@@ -168,6 +169,8 @@ class DataBase:
             .row() \
             .field('identity', identity) \
             .field('type', type) \
+            .field('byte_count', byte_count) \
+            .field('preview', ..., preview) \
             .field('description', description) \
             .field('tags', tags) \
             .field('extra_info', extra_info) \
@@ -200,6 +203,17 @@ class DataBase:
     @staticmethod
     def fish__delete(id: int) -> None:
         ystr(Config.path__db).filepath().db().table('fish').where(f'id={id}').delete(print_sql=True)
+
+    @staticmethod
+    def fish__select_preview(identity: str) -> bytes | None:
+        res = ystr(Config.path__db).filepath().db() \
+            .table('fish') \
+            .cols('preview') \
+            .where(f"identity='{identity}'") \
+            .select(print_sql=True)
+        if len(res) > 0:
+            return res[0][0]
+        return None
 
 class FishIndex:
 

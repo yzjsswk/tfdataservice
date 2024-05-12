@@ -14,6 +14,8 @@ class Config:
 
     build_index = False
     fishindex_id = 'A'
+
+    preview_size_limit = 1048576 # 1MB
     
     def init_with_workpath(workpath: str):
         Config.work_path = workpath

@@ -30,6 +30,8 @@ def control(func):
                 lack_para.append(func_para)
         return input, lack_para, dup_para
     def handle_output(data, time_cost, status=200) -> Response:
+        if data == None:
+            return make_response('')
         if isinstance(data, dict):
             res = {}
             res['time_cost'] = time_cost
@@ -250,3 +252,9 @@ def unmark_fish(identity: str) -> dict:
 @control
 def fetch_resource(identity: str) -> bytes:
     return Service.fetch_resource(identity)
+
+@tfwebserver.route('/resource/preview', methods=['GET'])
+@control
+def fetch_preview(identity: str) -> bytes:
+    return Service.fetch_preview(identity)
+

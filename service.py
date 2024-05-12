@@ -105,6 +105,7 @@ class Service():
                 type=type, tags=tags, is_marked=is_marked, is_locked=is_locked,
                 page_num=page_num, page_size=page_size, 
             )
+        # todo: change preview to preview in db
         if with_preview:
             for f in fish:
                 if f.type != 'text':
@@ -140,9 +141,19 @@ class Service():
         FileSystem.fishdata__save(value, type)
         if type == FishType.txt:
             FishIndex.add_document(identity, ybytes(value).to_str())
+        match type:
+            case FishType.txt:
+                preview = ybytes(value).to_str()[:2000]
+            case FishType.tiff:
+                preview = ypic.from_bytes(value).resize(width=512, height=512).to_bytes()
+            case _:
+                preview = None
+        if preview != None and len(preview) > Config.preview_size_limit:
+            logger.error(f'add fish - ignore preview: preview size too large, len(preview)={len(preview)}, limit={Config.preview_size_limit}')
+            preview = None
         DataBase.fish__insert(
-            identity=identity,type=type.name,description=description,
-            tags=tags, extra_info=extra_info,
+            identity=identity, type=type.name, byte_count=len(value), preview=preview,
+            description=description, tags=tags, extra_info=extra_info,
         )
         return get_dict_resp(RespStatus.success, 'success', 'SVAF')
     
@@ -233,3 +244,7 @@ class Service():
     @staticmethod
     def fetch_resource(identity: str) -> bytes | None:
         return FileSystem.fishdata__read(identity)
+    
+    @staticmethod
+    def fetch_preview(identity: str) -> bytes | None:
+        return DataBase.fish__select_preview(identity)
