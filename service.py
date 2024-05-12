@@ -149,7 +149,7 @@ class Service():
                 extra_info_dic['word_count'] = len(text_value.to_words())
                 extra_info_dic['row_count'] = len(text_value.to_rows())
                 preview = text_value[:2000]
-            case FishType.tiff, FishType.png, FishType.jpg:
+            case FishType.tiff | FishType.png | FishType.jpg:
                 image_value = ypic.from_bytes(value)
                 extra_info_dic['width'] = image_value.p.width
                 extra_info_dic['height'] = image_value.p.height
