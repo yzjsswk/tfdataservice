@@ -153,7 +153,7 @@ class Service():
                 image_value = ypic.from_bytes(value)
                 extra_info_dic['width'] = image_value.p.width
                 extra_info_dic['height'] = image_value.p.height
-                preview = image_value.resize(width=512, height=512).to_bytes()
+                preview = image_value.resize(width=512, height=None).to_bytes()
             case _:
                 preview = None
         extra_info = ystr().json().from_object(extra_info_dic)
