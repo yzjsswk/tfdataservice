@@ -1,7 +1,7 @@
 import requests
 from app import tfdataservice
 from yfunc import *
-from definition import FishResp, FishType
+from definition import *
 
 class PageInfo:
 
@@ -76,7 +76,7 @@ class tfoperator:
         description: str = None, 
         identity: str = None,
         type: list[FishType] = None, 
-        tags: list[str] = None, 
+        tags: list[list[str]] = None, 
         is_marked: bool = None,
         is_locked: bool = None,
         page_num: int = 1,
@@ -86,8 +86,7 @@ class tfoperator:
         url = self.url_prefix + '/fish/search'
         if type != None:
             type = ','.join(t.name for t in type)
-        if tags != None:
-            tags = ','.join(t for t in tags)
+        tags = tags_parse_str(tags)
         if is_marked != None:
             is_marked = 'true' if is_marked else 'false'
         if is_locked != None:
@@ -119,12 +118,11 @@ class tfoperator:
         value: bytes,
         type: str,
         description: str = None,
-        tags: list[str] = None,
+        tags: list[list[str]] = None,
         extra_info: str = None,
     ) -> str:
         url = self.url_prefix + '/fish/add'
-        if tags != None:
-            tags = ','.join(t for t in tags)
+        tags = tags_parse_str(tags)
         res = requests.post(url=url, data={
             'type': type,
             'description': description,

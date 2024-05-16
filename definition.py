@@ -25,7 +25,7 @@ class FishResp:
 
     def __init__(self, 
             id: str, identity: str, type: str, byte_count: int, preview: bytes,
-            description: str, tags: list[str], is_marked: bool, is_locked: bool,
+            description: str, tags: list[list[str]], is_marked: bool, is_locked: bool,
             extra_info: str, create_time: str, update_time: str
         ) -> None:
         self.id = id
@@ -57,7 +57,7 @@ class FishResp:
             byte_count=row[3],
             preview=None,
             description = row[4],
-            tags = [] if row[5] == '' else row[5].split(','), 
+            tags = str_parse_tags(row[5]),
             is_marked = True if row[6] == 1 else False,
             is_locked = True if row[7] == 1 else False,
             extra_info = row[8], 
@@ -84,5 +84,28 @@ def get_dict_resp(status: RespStatus, message: str, extra: str=''):
         'msg': message,
     }
 
+def tags_parse_str(tags: list[list[str]]) -> str:
+    if tags == None:
+        return None
+    res = []
+    for tag_group in tags:
+        tag_group = [t for tag in tag_group if (t:=tag.strip()) != '']
+        if len(tag_group) > 0:
+            tag_group = ylist(tag_group).unique().sort()
+            res.append(','.join(tag_group))
+    return '|'.join(res)
 
+def str_parse_tags(tag_str: str) -> list[list[str]]:
+    if tag_str == None:
+        return None
+    res = []
+    if tag_str == '':
+        return res 
+    tag_groups = tag_str.split('|')
+    for tag_group in tag_groups:
+        cur = ystr(tag_group).split(',', trim_each=True, remove_null=True)
+        if len(cur) > 0:
+            cur = ylist(cur).unique().sort()
+            res.append(cur)
+    return res
 

@@ -139,8 +139,7 @@ def search_fish (
         identity = identity.split(',')
     if type != None:
         type = ylist(FishType.from_name(t) for t in type.split(',')).filter(FishType)
-    if tags != None:
-        tags = tags.split(',')
+    tags = str_parse_tags(tags)
     if is_marked != None:
         if ystr(is_marked).of('true', '1'):
             is_marked = True
@@ -196,8 +195,7 @@ def add_fish (
     ) -> dict:
     if type != None:
         type = FishType.from_name(type)
-    if tags != None:
-        tags = tags.split(',')
+    tags = str_parse_tags(tags)
     return Service.add_fish(
         value=value, description=description, type=type, 
         tags=tags, extra_info=extra_info,
@@ -211,8 +209,7 @@ def modify_fish (
         tags: str = None,
         extra_info: str = None,
     ) -> dict:
-    if tags != None:
-        tags = tags.split(',')
+    tags = str_parse_tags(tags)
     return Service.modify_fish(
         identity=identity, description=description,
         tags=tags, extra_info=extra_info,

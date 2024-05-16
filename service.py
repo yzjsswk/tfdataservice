@@ -41,7 +41,7 @@ class Service():
                 type_stats[r.type] += 1
             else:
                 type_stats[r.type] = 1
-            for t in r.tags:
+            for t in ylist(r.tags).flatten():
                 if t in tag_stats:
                     tag_stats[t] += 1
                 else:
@@ -69,7 +69,7 @@ class Service():
             description: str = None, # like
             identity: list[str] = None, # match any
             type: list[FishType] = None, # match any
-            tags: list[str] = None, # match each
+            tags: list[list[str]] = None, # match each
             is_marked: bool = None,
             is_locked: bool = None,
             page_num: int = None,
@@ -79,7 +79,7 @@ class Service():
         if type != None:
             type = [e.name for e in type]
         if tags != None:
-            tags = ylist(tags).unique().sort()
+            tags = ylist(tags).flatten()
         if is_marked != None:
             is_marked = 1 if is_marked else 0
         if is_locked != None:
@@ -125,16 +125,14 @@ class Service():
             value: bytes,
             description: str,
             type: FishType,
-            tags: list[str],
+            tags: list[list[str]],
             extra_info: str,
         ) -> dict:
         if value == None:
             return get_dict_resp(RespStatus.fail, 'value can not be null', 'SVAF')
         if type == None:
             return get_dict_resp(RespStatus.fail, 'type can not be null or invalid', 'SVAF')
-        if tags != None:
-            tags = ylist(tags).unique().sort()
-            tags = ','.join(tags)
+        tags = tags_parse_str(tags)
         identity = ybytes(value).md5()
         if DataBase.fish__exist(identity):
             return get_dict_resp(RespStatus.fail, 'fish data exists', 'SVAF')
@@ -247,9 +245,7 @@ class Service():
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVMDF')
         if res[0].is_locked:
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVMDF')
-        if tags != None:
-            tags = ylist(tags).unique().sort()
-            tags = ','.join(tags)
+        tags = tags_parse_str(tags)
         DataBase.fish__update(id=res[0].id, description=description, tags=tags, extra_info=extra_info)
         return get_dict_resp(RespStatus.success, 'success', 'SVMDF')    
     
