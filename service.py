@@ -141,7 +141,10 @@ class Service():
         FileSystem.fishdata__save(value, type)
         if type == FishType.txt:
             FishIndex.add_document(identity, ybytes(value).to_str())
-        extra_info_dic = ystr(extra_info).json().to_dic()
+        if extra_info == None:
+            extra_info_dic = {}
+        else:
+            extra_info_dic = ystr(extra_info).json().to_dic()
         match type:
             case FishType.txt:
                 text_value = ybytes(value).to_str()

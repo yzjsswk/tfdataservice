@@ -42,6 +42,8 @@ class TFResp:
                     id = f.get('id', None),
                     identity = f.get('identity', None),
                     type = f.get('type', None),
+                    byte_count = f.get('byte_count', None),
+                    preview = f.get('preview', None),
                     description = f.get('description', None),
                     tags = f.get('tags', None),
                     is_marked = f.get('is_marked', None),
@@ -49,7 +51,6 @@ class TFResp:
                     extra_info = f.get('extra_info', None),
                     create_time = f.get('create_time', None),
                     update_time = f.get('update_time', None),
-                    preview = f.get('preview', None),
                 ) for f in fish
             ] if fish != None else None
                 
