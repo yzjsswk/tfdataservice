@@ -1,6 +1,6 @@
+from .config import Config
+from .definition import FishResp, FishType
 from yfunc import *
-from config import Config
-from definition import FishResp, FishType
 import os
 from whoosh import index
 from whoosh.fields import Schema, TEXT, ID

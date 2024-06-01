@@ -1,6 +1,4 @@
 /__pycache__
-/log/*
-!/log/.gitkeep
-/resource/*
-!/resource/.gitkeep
 /tfds
+/touchfish.egg-info
+/touchfish/__pycache__

@@ -1,8 +1,8 @@
+from .web import tfwebserver
+from .task import tftask
+from .config import Config
+from .storage import DataBase, FishIndex, FileSystem
 from yfunc import *
-from web import tfwebserver
-from task import tftask
-from config import Config
-from storage import DataBase, FishIndex, FileSystem
 import os
 
 class tfdataservice:

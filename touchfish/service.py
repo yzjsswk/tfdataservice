@@ -1,7 +1,7 @@
+from .storage import DataBase, FileSystem, FishIndex
+from .definition import *
+from .config import Config
 from yfunc import *
-from storage import DataBase, FileSystem, FishIndex
-from definition import *
-from config import Config
 
 class Service():
 

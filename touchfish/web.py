@@ -1,7 +1,7 @@
+from .service import Service
+from .definition import *
 from yfunc import *
 from flask import Flask, request, Response, make_response
-from service import Service
-from definition import *
 import time
 
 def control(func):

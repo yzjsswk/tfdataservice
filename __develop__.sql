@@ -43,3 +43,8 @@
 -- delete from request;
 -- select * from request order by create_time desc limit 20;
 
+SELECT strftime('%Y-%m-%d', create_time) AS date,
+       COUNT(*) AS record_count
+FROM request
+GROUP BY strftime('%Y-%m-%d', create_time)
+ORDER BY date;

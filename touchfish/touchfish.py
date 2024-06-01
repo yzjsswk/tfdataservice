@@ -1,7 +1,7 @@
+from .app import tfdataservice
+from .definition import *
 import requests
-from app import tfdataservice
 from yfunc import *
-from definition import *
 from typing import Any
 
 class PageInfo:
