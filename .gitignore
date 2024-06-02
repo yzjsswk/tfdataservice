@@ -1,4 +1,4 @@
-/__pycache__
-/tfds
+/build
+/dist
 /touchfish.egg-info
 /touchfish/__pycache__

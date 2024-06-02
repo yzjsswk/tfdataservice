@@ -155,6 +155,18 @@ class Service():
                 extra_info_dic['width'] = image_value.p.width
                 extra_info_dic['height'] = image_value.p.height
                 preview = image_value.resize(width=512, height=None).to_bytes()
+            case FishType.pdf:
+                import fitz
+                pdf = fitz.open(stream=bytes(value))
+                extra_info_dic['page_count'] = pdf.page_count
+                if pdf.page_count > 0:
+                    first_page = pdf.load_page(0)
+                    image__first_page = first_page.get_pixmap()
+                    pic = ypic.from_bytes(image__first_page.tobytes())
+                    preview = pic.resize(width=512, height=None).to_bytes()
+                else:
+                    logger.warning('save pdf fish - preview=None: page_count <= 0')
+                    preview = None
             case _:
                 preview = None
         extra_info = ystr().json().from_object(extra_info_dic)
