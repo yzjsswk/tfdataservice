@@ -41,7 +41,6 @@ class FishResp:
         self.create_time = create_time
         self.update_time = update_time
         
-
     def __str__(self) -> str:
         return str(self.__dict__)
     

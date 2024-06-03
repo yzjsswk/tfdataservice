@@ -108,7 +108,7 @@ class Service():
         # todo: change preview to preview in db
         if with_preview:
             for f in fish:
-                if f.type != 'text':
+                if f.type != 'txt':
                     continue
                 try:
                     fishdata = FileSystem.fishdata__read(f.identity)

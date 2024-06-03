@@ -145,4 +145,57 @@ class tfoperator:
         })
         return res.content
 
-        
+
+class RecipeViewType(Enum):
+
+    text = 1
+    list = 2
+
+class RecipeItemAction(Enum):
+    back = 1
+    hide = 2
+    copy = 3
+    open = 4
+    script = 5
+
+class RecipeViewItem:
+    title: str
+    description: str
+    icon: str
+    tags: list[str]
+    parameters: list[list[str]]
+    action: list[RecipeItemAction]
+
+    def __init__(self,
+        title: str,
+        description: str,
+        icon: str = None,
+        tags: list[str] = [],
+        parameters: list[list[str]] = [],
+        action: list[RecipeItemAction] = [],
+    ) -> None:
+        self.title = title
+        self.description = description
+        self.icon = icon
+        self.tags = tags
+        self.parameters = parameters
+        self.action = action
+
+class RecipeView:
+
+    error_message: str
+    type: RecipeViewType
+    items: list[RecipeViewItem]
+
+    def __init__(self,
+            type: RecipeViewType,
+            items: list[RecipeViewItem],
+            error_message: str = None,
+    ) -> None:
+        self.type = type
+        self.items = items
+        self.error_message = error_message
+
+    def show(self):
+        import sys
+        sys.stdout.write(ystr().json().from_object(self))
