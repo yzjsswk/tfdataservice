@@ -1,4 +1,4 @@
-from .service import Service
+from .service import Service, logger
 from .definition import *
 from yfunc import *
 from flask import Flask, request, Response, make_response

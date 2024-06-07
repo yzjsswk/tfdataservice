@@ -1,7 +1,6 @@
-from .app import tfdataservice
-from .definition import *
-import requests
+from .definition import FishResp, FishType, tags_parse_str, RespStatus
 from yfunc import *
+from enum import Enum
 from typing import Any
 
 class PageInfo:
@@ -96,6 +95,7 @@ class tfoperator:
         page_size = str(page_size)
         if with_preview != None:
             with_preview = 'true' if with_preview else 'false'
+        import requests
         res = requests.get(url=url, params={
             'fuzzys': fuzzys,
             'value': value,
@@ -124,6 +124,7 @@ class tfoperator:
     ) -> str:
         url = self.url_prefix + '/fish/add'
         tags = tags_parse_str(tags)
+        import requests
         res = requests.post(url=url, data={
             'type': type,
             'description': description,
@@ -140,11 +141,11 @@ class tfoperator:
         identity: str
     ) -> bytes:
         url = self.url_prefix + '/resource/fetch'
+        import requests
         res = requests.get(url=url, params={
             'identity': identity,
         })
         return res.content
-
 
 class RecipeViewType(Enum):
 

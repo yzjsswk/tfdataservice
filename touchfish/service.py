@@ -1,4 +1,4 @@
-from .storage import DataBase, FileSystem, FishIndex
+from .storage import DataBase, FileSystem, FishIndex, logger
 from .definition import *
 from .config import Config
 from yfunc import *

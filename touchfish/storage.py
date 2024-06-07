@@ -1,11 +1,12 @@
 from .config import Config
-from .definition import FishResp, FishType
+from .definition import *
 from yfunc import *
 import os
 from whoosh import index
 from whoosh.fields import Schema, TEXT, ID
-from whoosh.query import Term, Prefix, FuzzyTerm
+# from whoosh.query import Term, Prefix, FuzzyTerm
 from whoosh.qparser import QueryParser
+from loguru import logger
 
 class DataBase:
 
@@ -61,6 +62,35 @@ class DataBase:
         );
         """,
     ]
+
+    # todo: yfunc.ystr.db: select return dict
+
+    @staticmethod
+    def fish__parse_row(row: tuple) -> FishResp:
+        return FishResp(
+            id = row[0],
+            identity = row[1],
+            type = row[2],
+            byte_count=row[3],
+            preview=None,
+            description = row[4],
+            tags = str_parse_tags(row[5]),
+            is_marked = True if row[6] == 1 else False,
+            is_locked = True if row[7] == 1 else False,
+            extra_info = row[8], 
+            create_time = row[9], 
+            update_time = row[10],
+        )
+    
+    @staticmethod
+    def fish__parse_rows(rows: list[tuple]) -> list['FishResp']:
+        res = []
+        for row in rows:
+            try:
+                res.append(DataBase.fish__parse_row(row))
+            except Exception as e:
+                logger.warning(f'parse db row to fish - ignore a row: parse failed, row_id={row[0] if len(row)>0 else -1}', e)
+        return res
 
     @staticmethod
     def request__insert (
@@ -136,7 +166,7 @@ class DataBase:
             .table('fish') \
             .cols('count(*)') \
             .where(condition) \
-            .select(print_sql=True)[0][0]
+            .select(sql_printer=logger)[0][0]
         fish = ystr(Config.path__db).filepath().db() \
             .table('fish') \
             .cols(
@@ -146,12 +176,12 @@ class DataBase:
             ) \
             .where(condition) \
             .extra(extra) \
-            .select(print_sql=True)
-        return cnt, FishResp.from_rows(fish)
+            .select(sql_printer=logger)
+        return cnt, DataBase.fish__parse_rows(fish)
     
     @staticmethod
     def fish__exist(identity: str) -> bool:
-        res = ystr(Config.path__db).filepath().db().execute(f"select count(*) from fish where identity='{identity}';", print_sql=True)
+        res = ystr(Config.path__db).filepath().db().execute(f"select count(*) from fish where identity='{identity}';", sql_printer=logger)
         return res[0][0] > 0
     
     @staticmethod
@@ -174,7 +204,7 @@ class DataBase:
             .field('description', description) \
             .field('tags', tags) \
             .field('extra_info', extra_info) \
-            .insert(print_sql=True)
+            .insert(sql_printer=logger)
         
     @staticmethod
     def fish__update (
@@ -198,11 +228,11 @@ class DataBase:
             .field('is_locked', is_locked) \
             .field('extra_info', extra_info) \
             .where(f'id={id}') \
-            .update(print_sql=True)
+            .update(sql_printer=logger)
         
     @staticmethod
     def fish__delete(id: int) -> None:
-        ystr(Config.path__db).filepath().db().table('fish').where(f'id={id}').delete(print_sql=True)
+        ystr(Config.path__db).filepath().db().table('fish').where(f'id={id}').delete(sql_printer=logger)
 
     @staticmethod
     def fish__select_preview(identity: str) -> bytes | None:
@@ -210,7 +240,7 @@ class DataBase:
             .table('fish') \
             .cols('preview') \
             .where(f"identity='{identity}'") \
-            .select(print_sql=True)
+            .select(sql_printer=logger)
         if len(res) > 0:
             return res[0][0]
         return None
