@@ -113,7 +113,7 @@ class tfoperator:
             raise Exception(f'request error: {res.text}')
         res_dict = ystr(res.text).json().to_dic()
         return TFResp(res_dict)
-    
+
     def add_fish (
         self,
         value: bytes,
@@ -148,39 +148,60 @@ class tfoperator:
         return res.content
 
 class RecipeViewType(Enum):
+    empty = 1
+    error = 2
+    text = 3
+    list = 4
 
-    text = 1
-    list = 2
-
-class RecipeItemAction(Enum):
+class RecipeActionType(Enum):
     back = 1
     hide = 2
     copy = 3
     open = 4
-    script = 5
+    shell = 5
+
+class RecipeActionArgType(Enum):
+    plain = 1
+    para = 2
+    commandBarText = 3
+    file = 4
+    context = 5
+
+class RecipeActionArg:
+    type: RecipeActionArgType
+    value: str
+
+    def __init__(self, type: RecipeActionArgType, value: str=None) -> None:
+        self.type = type
+        self.value = value
+
+class RecipeAction:
+    type: RecipeActionType
+    arguments: list[RecipeActionArg]
+
+    def __init__(self, type: RecipeActionType, arguments: list[RecipeActionArg]=[]) -> None:
+        self.type = type
+        self.arguments = arguments
 
 class RecipeViewItem:
     title: str
     description: str
     icon: str
     tags: list[str]
-    parameters: list[list[str]]
-    action: list[RecipeItemAction]
+    actions: list[RecipeAction]
 
     def __init__(self,
         title: str,
         description: str,
         icon: str = None,
         tags: list[str] = [],
-        parameters: list[list[str]] = [],
-        action: list[RecipeItemAction] = [],
+        actions: list[RecipeAction] = [],
     ) -> None:
         self.title = title
         self.description = description
         self.icon = icon
         self.tags = tags
-        self.parameters = parameters
-        self.action = action
+        self.actions = actions
 
 class RecipeView:
 

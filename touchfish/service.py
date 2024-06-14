@@ -151,7 +151,7 @@ class Service():
                 extra_info_dic['row_count'] = len(text_value.to_rows())
                 preview = text_value[:2000]
             case FishType.tiff | FishType.png | FishType.jpg:
-                image_value = ypic.from_bytes(value)
+                image_value = ypic().from_bytes(value)
                 extra_info_dic['width'] = image_value.p.width
                 extra_info_dic['height'] = image_value.p.height
                 preview = image_value.resize(width=512, height=None).to_bytes()
@@ -162,7 +162,7 @@ class Service():
                 if pdf.page_count > 0:
                     first_page = pdf.load_page(0)
                     image__first_page = first_page.get_pixmap()
-                    pic = ypic.from_bytes(image__first_page.tobytes())
+                    pic = ypic().from_bytes(image__first_page.tobytes())
                     preview = pic.resize(width=512, height=None).to_bytes()
                 else:
                     logger.warning('save pdf fish - preview=None: page_count <= 0')
