@@ -132,13 +132,10 @@ class Service():
             return get_dict_resp(RespStatus.fail, 'value can not be null', 'SVAF')
         if type == None:
             return get_dict_resp(RespStatus.fail, 'type can not be null or invalid', 'SVAF')
-        tags = tags_parse_str(tags)
         identity = ybytes(value).md5()
         if DataBase.fish__exist(identity):
             return get_dict_resp(RespStatus.fail, 'fish data exists', 'SVAF')
-        FileSystem.fishdata__save(value, type)
-        if type == FishType.txt:
-            FishIndex.add_document(identity, ybytes(value).to_str())
+        tags = tags_parse_str(tags)
         if extra_info == None:
             extra_info_dic = {}
         else:
@@ -168,11 +165,15 @@ class Service():
                     logger.warning('save pdf fish - preview=None: page_count <= 0')
                     preview = None
             case _:
+                logger.warning(f'add fish - preview=None: type not support preview, type={type}')
                 preview = None
         extra_info = ystr().json().from_object(extra_info_dic)
         if preview != None and len(preview) > Config.preview_size_limit:
-            logger.error(f'add fish - ignore preview: preview size too large, len(preview)={len(preview)}, limit={Config.preview_size_limit}')
+            logger.warning(f'add fish - ignore preview: preview size too large, len(preview)={len(preview)}, limit={Config.preview_size_limit}')
             preview = None
+        FileSystem.fishdata__save(value, type)
+        if type == FishType.txt:
+            FishIndex.add_document(identity, ybytes(value).to_str())
         DataBase.fish__insert(
             identity=identity, type=type.name, byte_count=len(value), preview=preview,
             description=description, tags=tags, extra_info=extra_info,
