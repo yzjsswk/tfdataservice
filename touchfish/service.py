@@ -177,7 +177,7 @@ class Service():
             identity=identity, type=type.name, byte_count=len(value), preview=preview,
             description=description, tags=tags, extra_info=extra_info,
         )
-        return get_dict_resp(RespStatus.success, 'success', 'SVAF')
+        return get_dict_resp(RespStatus.success, identity, 'SVAF')
     
     @staticmethod
     def remove_fish(identity: str) -> dict:
@@ -189,7 +189,7 @@ class Service():
         FileSystem.fishdata__expire(identity)
         FishIndex.remove_document(identity)
         DataBase.fish__delete(id=res[0].id)
-        return get_dict_resp(RespStatus.success, 'success', 'SVRF')
+        return get_dict_resp(RespStatus.success, identity, 'SVRF')
     
     @staticmethod
     def mark_fish(identity: str) -> dict:
@@ -201,7 +201,7 @@ class Service():
         if res[0].is_marked:
             return get_dict_resp(RespStatus.skip, 'fish has been marked', 'SVMF')
         DataBase.fish__update(id=res[0].id, is_marked=1)
-        return get_dict_resp(RespStatus.success, 'success', 'SVMF')
+        return get_dict_resp(RespStatus.success, identity, 'SVMF')
     
     @staticmethod
     def unmark_fish(identity: str) -> dict:
@@ -213,7 +213,7 @@ class Service():
         if not res[0].is_marked:
             return get_dict_resp(RespStatus.skip, 'fish is not marked', 'SVUMF')
         DataBase.fish__update(id=res[0].id, is_marked=0)
-        return get_dict_resp(RespStatus.success, 'success', 'SVUMF')
+        return get_dict_resp(RespStatus.success, identity, 'SVUMF')
     
     @staticmethod
     def lock_fish(identity: str) -> dict:
@@ -223,7 +223,7 @@ class Service():
         if res[0].is_locked:
             return get_dict_resp(RespStatus.skip, 'fish has been locked', 'SVLF')
         DataBase.fish__update(id=res[0].id, is_locked=1)
-        return get_dict_resp(RespStatus.success, 'success', 'SVLF')
+        return get_dict_resp(RespStatus.success, identity, 'SVLF')
     
     @staticmethod
     def unlock_fish(identity: str) -> dict:
@@ -233,7 +233,7 @@ class Service():
         if not res[0].is_locked:
             return get_dict_resp(RespStatus.skip, 'fish is not locked', 'SVULF')
         DataBase.fish__update(id=res[0].id, is_locked=0)
-        return get_dict_resp(RespStatus.success, 'success', 'SVULF')
+        return get_dict_resp(RespStatus.success, identity, 'SVULF')
     
     @staticmethod
     def pin_fish(identity: str) -> dict:
@@ -241,7 +241,7 @@ class Service():
         if len(res) == 0:
             return get_dict_resp(RespStatus.fail, 'fish not exists', 'SVPF')
         DataBase.fish__update(id=res[0].id, type=res[0].type)
-        return get_dict_resp(RespStatus.success, 'success', 'SVPF')
+        return get_dict_resp(RespStatus.success, identity, 'SVPF')
     
     @staticmethod
     def modify_fish (
@@ -259,7 +259,7 @@ class Service():
             return get_dict_resp(RespStatus.fail, 'fish is locked', 'SVMDF')
         tags = tags_parse_str(tags)
         DataBase.fish__update(id=res[0].id, description=description, tags=tags, extra_info=extra_info)
-        return get_dict_resp(RespStatus.success, 'success', 'SVMDF')    
+        return get_dict_resp(RespStatus.success, identity, 'SVMDF')    
     
     @staticmethod
     def fetch_resource(identity: str) -> bytes | None:

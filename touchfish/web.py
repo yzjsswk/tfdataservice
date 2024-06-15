@@ -49,7 +49,7 @@ def control(func):
                 res['data'] = data
             res = ystr().json().from_object(res)
             return Response(res, status=status, content_type='application/json')
-        if  isinstance(data, bytes):
+        if isinstance(data, bytes):
             res = make_response(data)
             # todo: file name
             res.headers['Content-Disposition'] = f'attachment; filename=fishdata'
