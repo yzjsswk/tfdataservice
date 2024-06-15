@@ -64,8 +64,9 @@ def control(func):
             logger.warning(f'warp func ignore para: args={args}, kwargs={kwargs}')
         request_id = ystr.uuid()
         logger.info(f"request start: request_id={request_id}, url={request.base_url}")
+        t1 = int(time.time()*1000)
+        # execute
         try:
-            t1 = int(time.time()*1000)
             input, lack_para, dup_para = handle_input(func)
             if len(lack_para) > 0:
                 res = get_dict_resp(RespStatus.fail, f'parameters required: {lack_para}', 'CTWF')
@@ -73,37 +74,54 @@ def control(func):
                 res = get_dict_resp(RespStatus.fail, f'parameters duplicated: {dup_para}', 'CTWF')
             else:
                 res = func(**input)
-            t2 = int(time.time()*1000)
         except Exception as e:
             e.add_note(f'Note: url = {request.base_url}')
             logger.exception(e)
             res = {'code':-999, 'status': 'fail', 'msg': str(e)}
-            t2 = int(time.time()*1000)
-        resp = handle_output(res, t2-t1)    
+        t2 = int(time.time()*1000)
+        # make response
+        try:
+            resp = handle_output(res, t2-t1)    
+        except Exception as e:
+            e.add_note(f'Note: url = {request.base_url}')
+            logger.exception(e)
+            res = {'code':-998, 'status': 'fail', 'msg': str(e)}
         t3 = int(time.time()*1000)
-        Service.add_request_log(
-            request_id=request_id, url=request.base_url, time_cost=f'{t3-t1}+:{t2-t1},{t3-t2}',
-            origin_input = {
-                'request.args': request.args,
-                'request.form': request.form,
-                'request.files': request.files,
-            },
-            real_input = input, 
-            response = {
-                'code': resp.status_code,
-                'content_type': resp.content_type,
-                'content_length': f'{resp.content_length}({ybytes(resp.data).size()})',
-                'preview': ybytes(resp.data).desc()[:1000],
-            },
-            extra_info = '',
-        )
+        # record request log
+        try:
+            Service.add_request_log(
+                request_id=request_id, url=request.base_url, time_cost=f'{t3-t1}+:{t2-t1},{t3-t2}',
+                origin_input = {
+                    'request.args': request.args,
+                    'request.form': request.form,
+                    'request.files': request.files,
+                },
+                real_input = input, 
+                response = {
+                    'code': resp.status_code,
+                    'content_type': resp.content_type,
+                    'content_length': f'{resp.content_length}({ybytes(resp.data).size()})',
+                    'preview': ybytes(resp.data).desc()[:1000],
+                },
+                extra_info = '',
+            )
+        except Exception as e:
+            e.add_note(f'Note: url = {request.base_url}')
+            logger.exception(e)
+            res = {'code':-997, 'status': 'fail', 'msg': str(e)}
         t4 = int(time.time()*1000)
-        Service.update_request_time(request_id, {
-            'total': t4-t1,
-            'execute': t2-t1,
-            'make_response': t3-t2,
-            'record_log': t4-t3,            
-        })
+        # update time cost of request log (including time cost of recording log)
+        try:
+            Service.update_request_time(request_id, {
+                'total': t4-t1,
+                'execute': t2-t1,
+                'make_response': t3-t2,
+                'record_log': t4-t3,            
+            })
+        except Exception as e:
+            e.add_note(f'Note: url = {request.base_url}')
+            logger.exception(e)
+            res = {'code':-996, 'status': 'fail', 'msg': str(e)}
         logger.info(f"request end: request_id={request_id}, url={request.base_url}, time_cost={t4-t1}, input={input}, output={resp}")
         return resp
     wrap_func.__name__ = f'wrap__{func.__name__}'
@@ -169,7 +187,7 @@ def search_fish (
         page_size = 10
     if page_num < 1:
         page_num = 1
-    if page_size < 1 or page_size > 100:
+    if page_size < 1:
         page_size = 10
     total_count, fish = Service.search_fish(
         fuzzys=fuzzys, value=value, description=description, identity=identity,
