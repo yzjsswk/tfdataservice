@@ -121,7 +121,7 @@ class tfoperator:
         description: str = None,
         tags: list[list[str]] = None,
         extra_info: str = None,
-    ) -> str:
+    ) -> TFResp:
         url = self.url_prefix + '/fish/add'
         tags = tags_parse_str(tags)
         import requests
@@ -136,6 +136,15 @@ class tfoperator:
         res_dict = ystr(res.text).json().to_dic()
         return TFResp(res_dict)
     
+    def remove_fish(self, identity: str) -> TFResp:
+        url = self.url_prefix + '/fish/remove'
+        import requests
+        res = requests.post(url=url, data={
+            'identity': identity,
+        })
+        res_dict = ystr(res.text).json().to_dic()
+        return TFResp(res_dict)
+
     def fetch_resource (
         self,
         identity: str
