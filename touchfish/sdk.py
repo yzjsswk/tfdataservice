@@ -140,6 +140,61 @@ class tfoperator:
         res_dict = ystr(res.text).json().to_dic()
         return TFResp(res_dict)
     
+    def modify_fish (
+        self,
+        identity: str, 
+        description: str = None,
+        tags: list[list[str]] = None,
+        extra_info: str = None,
+    ) -> TFResp:
+        url = self.url_prefix + '/fish/modify'
+        tags = tags_parse_str(tags)
+        import requests
+        res = requests.post(url=url, data={
+            'identity': identity,
+            'description': description,
+            'tags': tags,
+            'extra_info': extra_info,
+        })
+        res_dict = ystr(res.text).json().to_dic()
+        return TFResp(res_dict)
+    
+    def mark_fish(self, identity: str) -> TFResp:
+        url = self.url_prefix + '/fish/mark'
+        import requests
+        res = requests.post(url=url, data={
+            'identity': identity,
+        })
+        res_dict = ystr(res.text).json().to_dic()
+        return TFResp(res_dict)
+    
+    def unmark_fish(self, identity: str) -> TFResp:
+        url = self.url_prefix + '/fish/unmark'
+        import requests
+        res = requests.post(url=url, data={
+            'identity': identity,
+        })
+        res_dict = ystr(res.text).json().to_dic()
+        return TFResp(res_dict)
+    
+    def lock_fish(self, identity: str) -> TFResp:
+        url = self.url_prefix + '/fish/lock'
+        import requests
+        res = requests.post(url=url, data={
+            'identity': identity,
+        })
+        res_dict = ystr(res.text).json().to_dic()
+        return TFResp(res_dict)
+    
+    def unlock_fish(self, identity: str) -> TFResp:
+        url = self.url_prefix + '/fish/unlock'
+        import requests
+        res = requests.post(url=url, data={
+            'identity': identity,
+        })
+        res_dict = ystr(res.text).json().to_dic()
+        return TFResp(res_dict)
+    
     def remove_fish(self, identity: str) -> TFResp:
         url = self.url_prefix + '/fish/remove'
         import requests
@@ -149,11 +204,16 @@ class tfoperator:
         res_dict = ystr(res.text).json().to_dic()
         return TFResp(res_dict)
 
-    def fetch_resource (
-        self,
-        identity: str
-    ) -> bytes:
+    def fetch_resource(self, identity: str) -> bytes:
         url = self.url_prefix + '/resource/fetch'
+        import requests
+        res = requests.get(url=url, params={
+            'identity': identity,
+        })
+        return res.content
+    
+    def fetch_preview(self, identity: str) -> bytes:
+        url = self.url_prefix + '/resource/preview'
         import requests
         res = requests.get(url=url, params={
             'identity': identity,
