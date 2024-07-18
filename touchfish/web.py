@@ -210,14 +210,25 @@ def add_fish (
         type: str,
         description: str = None,
         tags: str = None,
+        is_marked: str = None,
+        is_locked: str = None,
         extra_info: str = None,
     ) -> dict:
     if type != None:
         type = FishType.from_name(type)
+    if is_marked != None and ystr(is_marked).of('true', '1'):
+        is_marked = True
+    else:
+        is_marked = False
+    if is_locked != None and ystr(is_locked).of('true', '1'):
+        is_locked = True
+    else:
+        is_locked = False
     tags = str_parse_tags(tags)
     return Service.add_fish(
         value=value, description=description, type=type, 
-        tags=tags, extra_info=extra_info,
+        tags=tags, is_marked=is_marked, is_locked=is_locked,
+        extra_info=extra_info,
     )
 
 @tfwebserver.route('/fish/modify', methods=['POST'])

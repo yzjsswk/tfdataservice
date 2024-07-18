@@ -126,6 +126,8 @@ class Service():
             description: str,
             type: FishType,
             tags: list[list[str]],
+            is_marked: bool,
+            is_locked: bool,
             extra_info: str,
         ) -> dict:
         if value == None:
@@ -176,7 +178,7 @@ class Service():
             FishIndex.add_document(identity, ybytes(value).to_str())
         DataBase.fish__insert(
             identity=identity, type=type.name, byte_count=len(value), preview=preview,
-            description=description, tags=tags, extra_info=extra_info,
+            description=description, tags=tags, is_marked=is_marked, is_locked=is_locked, extra_info=extra_info,
         )
         return get_dict_resp(RespStatus.success, identity, 'SVAF')
     

@@ -120,6 +120,8 @@ class tfoperator:
         type: str,
         description: str = None,
         tags: list[list[str]] = None,
+        is_marked: bool = False,
+        is_locked: bool = False,
         extra_info: str = None,
     ) -> TFResp:
         url = self.url_prefix + '/fish/add'
@@ -129,6 +131,8 @@ class tfoperator:
             'type': type,
             'description': description,
             'tags': tags,
+            'is_marked': '1' if is_marked else '0',
+            'is_locked': '1' if is_locked else '0',
             'extra_info': extra_info,
         }, files={
             'value': value,

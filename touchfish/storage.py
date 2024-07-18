@@ -192,6 +192,8 @@ class DataBase:
             preview: bytes,
             description: str,
             tags: str,
+            is_marked: bool,
+            is_locked: bool,
             extra_info: str,
         ) -> None:
         ystr(Config.path__db).filepath().db() \
@@ -203,6 +205,8 @@ class DataBase:
             .field('preview', ..., preview) \
             .field('description', description) \
             .field('tags', tags) \
+            .field('is_marked', 1 if is_marked else 0) \
+            .field('is_locked', 1 if is_locked else 0) \
             .field('extra_info', extra_info) \
             .insert(sql_printer=logger)
         
