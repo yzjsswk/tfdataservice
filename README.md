@@ -1,21 +1,3 @@
-the data service for the touchfish app, which contains two part:
-- tfdataservice: running data service (a web server)
-```python
-from touchfish import tfdataservice
+This project is the backend service for another project of mine: [TouchFish](https://github.com/yzjsswk/TouchFish). Also includes python sdk for accessing the backend service.
 
-tfdataservice.run(workpath='', port=2233)
-```
-- tfoperator: the python sdk for data service
-```python
-from touchfish import tfoperator
-
-# init the operator
-tfop = tfoperator(host='', port=2233)
-
-# add a fish
-tfop.add_fish('testtest', type='txt', description='', tags=[['test']])
-
-# search fish
-res = tfop.search_fish(tags=[['test']])
-res.data
-```
+For details, please see the readme of project [TouchFish](https://github.com/yzjsswk/TouchFish).
