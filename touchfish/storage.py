@@ -235,6 +235,13 @@ class DataBase:
         ystr(Config.path__db).filepath().db().table('fish').where(f'id={id}').delete(sql_printer=logger)
 
     @staticmethod
+    def fish__delete_list(ids: list[int]) -> None:
+        if len(ids) == 0:
+            return
+        ids = [str(id) for id in ids]
+        ystr(Config.path__db).filepath().db().table('fish').where(f'id in ({','.join(ids)})').delete(sql_printer=logger)
+
+    @staticmethod
     def fish__select_preview(identity: str) -> bytes | None:
         res = ystr(Config.path__db).filepath().db() \
             .table('fish') \
@@ -243,7 +250,7 @@ class DataBase:
             .select(sql_printer=logger)
         if len(res) > 0:
             return res[0][0]
-        return None
+        return None        
 
 class FishIndex:
 

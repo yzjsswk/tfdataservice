@@ -263,6 +263,19 @@ class Service():
         return get_dict_resp(RespStatus.success, identity, 'SVMDF')    
     
     @staticmethod
+    def clear_fish(second_delta: int) -> list[str]:
+        target_ts = int(ystr().timestamp().now()) - second_delta
+        ret = []
+        to_delete_id = []
+        _, fish_list = DataBase.fish__search(is_marked=False, is_locked=False)
+        for fish in fish_list:
+            if int(ystr(fish.update_time).datetime().to_timestamp()) < target_ts:
+                ret.append(fish.identity)
+                to_delete_id.append(fish.id)
+        DataBase.fish__delete_list(to_delete_id)
+        return ret
+            
+    @staticmethod
     def fetch_resource(identity: str) -> bytes | None:
         return FileSystem.fishdata__read(identity)
     

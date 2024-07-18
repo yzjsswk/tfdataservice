@@ -264,6 +264,16 @@ def mark_fish(identity: str) -> dict:
 def unmark_fish(identity: str) -> dict:
     return Service.unmark_fish(identity)
 
+@tfwebserver.route('/fish/clear', methods=['POST'])
+@control
+def clear_fish(second_delta: str) -> dict:
+    # todo: req/resp handle and error handle
+    second_delta = int(second_delta)
+    identity__cleared_fish = Service.clear_fish(second_delta=second_delta)
+    return {
+        'cleared_identitys': identity__cleared_fish
+    }
+
 @tfwebserver.route('/resource/fetch', methods=['GET'])
 @control
 def fetch_resource(identity: str) -> bytes:
