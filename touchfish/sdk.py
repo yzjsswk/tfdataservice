@@ -224,7 +224,8 @@ class RecipeViewType(Enum):
     empty = 1
     error = 2
     text = 3
-    list = 4
+    list1 = 4
+    list2 = 5
 
 class RecipeActionType(Enum):
     back = 1
@@ -278,6 +279,7 @@ class RecipeViewItem:
 
 class RecipeView:
 
+    default_item_icon: str
     error_message: str
     type: RecipeViewType
     items: list[RecipeViewItem]
@@ -285,12 +287,27 @@ class RecipeView:
     def __init__(self,
             type: RecipeViewType,
             items: list[RecipeViewItem],
+            default_item_icon: str = None,
             error_message: str = None,
     ) -> None:
         self.type = type
+        self.default_item_icon = default_item_icon
         self.items = items
         self.error_message = error_message
 
     def show(self):
         import sys
         sys.stdout.write(ystr().json().from_object(self))
+
+class MessageCenter:
+
+    @staticmethod
+    def send(level: str, content: str, title: str=None, source: str=None):
+        message_dic = {
+            'level': level,
+            'title': title,
+            'content': content,
+            'source': source,
+        }
+        import sys
+        sys.stdout.write(ystr().json().from_object(message_dic))
