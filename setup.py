@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='touchfish',
-    version='1.0.3',
-    description='data service and python sdk for touchfish #2e88665ea07f61f332fb0d4657acbfd0ec286042',
+    version='1.0.4',
+    description='data service and python sdk for touchfish #6cc92702e32f55e9446da17e86f8d8e150c87d82',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     author='yzjsswk',
